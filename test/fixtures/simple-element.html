@@ -1,0 +1,60 @@
+<link rel='import' href='../polymer/polymer.html'>
+<link rel='import' href='../paper-spinner/paper-spinner.html'>
+<link rel='import' href='../core-ajax/core-ajax.html'>
+
+<polymer-element name='simple-element' attributes='int_attr bool_attr' tabindex='0'>
+  <template>
+    <style>
+      :host {
+        display: block;
+        margin: 20px;
+      }
+    </style>
+    <div>Hello there</div>
+    <core-ajax id='ajax'></core-ajax>
+    <template if='{{bool_attr}}'>
+      <div>{{int_attr}} times I tell you hello.</div>
+    </template>
+  </template>
+  <script>
+  // this is a comment
+    Polymer('simple-element', {
+      publish: {
+        /**
+         * The most important attribute in the world.
+         */
+        int_attr: {
+          value: 0,
+          reflect: true
+        }
+      },
+      computed: {
+        'url': '"/api/v" + int_val + "/get"',
+        auto: 'shouldAuto(int_val, bool_val)',
+        'params': '{ok: bool_val, good: isGood(int_val)}'
+      },
+      observe: {
+        'int_attr x': 'somethingsUp'
+      },
+      bool_attr: false,
+      ready: function() {
+        console.log('ready!')
+      },
+      domReady: function() {
+        console.log('dom is ready!');
+      },
+      bool_attrChanged: function(oldVal, newVal) {
+        console.log('changed from ', oldVal, ' to ', newVal);
+      },
+      somethingsUp: function(oldVal) {
+        console.log('something changed from', oldVal)
+      },
+      shouldAuto: function(int_val, bool_val) {
+        return int_val + bool_val;
+      },
+      isGood: function(int_val) {
+        return int_val > 1;
+      }
+    });
+  </script>
+</polymer-element>
