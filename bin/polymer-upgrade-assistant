@@ -1,4 +1,4 @@
-var upgradeHtml = require('../lib/main');
+var upgradeHtml = require('../lib/upgrade_html');
 
 console.log('\n\n\n\n\n');
 console.log(Math.random());

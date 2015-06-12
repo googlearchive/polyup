@@ -2,12 +2,16 @@
   "name": "polymer-upgrade-assistant",
   "version": "0.0.0",
   "description": "Helps you upgrade from Polymer 0.5 to 1.0!",
-  "main": "index.js",
+  "main": "lib/upgrade_html.js",
   "scripts": {
     "test": "node_modules/.bin/jshint --verbose lib/*.js bin/* test/*.js && node_modules/.bin/mocha"
   },
+  "keywords": ["polymer"],
   "author": "",
-  "license": "MIT",
+  "license": "BSD-3-Clause",
+  "directories": {
+    "test": "test"
+  },
   "dependencies": {
     "escodegen": "^1.6.1",
     "espree": "^2.0.3",
