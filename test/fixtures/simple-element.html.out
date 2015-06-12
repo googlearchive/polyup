@@ -1,0 +1,94 @@
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../paper-spinner/paper-spinner.html">
+<link rel="import" href="../core-ajax/core-ajax.html">
+
+<!--
+    This test is still incomplete, at minimum we should translate the template
+    if into a dom-if, and convert core-ajax into iron-ajax.
+ -->
+<dom-module id="simple-element">
+  <style>
+      :host {
+        display: block;
+        margin: 20px;
+      }
+    </style>
+  <template>
+    <div>Hello there</div>
+    <core-ajax id="ajax"></core-ajax>
+    <template if="{{boolAttr}}">
+      <div>{{intAttr}} times I tell you hello.</div>
+    </template>
+  </template>
+</dom-module>
+<script>
+  // this is a comment
+  Polymer({
+    is: 'simple-element',
+    properties: {
+      arrayAttr: {
+        type: Array,
+        value: function () {
+          return [];
+        },
+        notify: true
+      },
+      auto: { computed: 'computeAuto(bool_val, int_val)' },
+      boolAttr: {
+        type: Boolean,
+        value: false,
+        notify: true,
+        observer: 'boolAttrChanged'
+      },
+      /**
+       * The most important attribute in the world.
+       */
+      intAttr: {
+        type: Number,
+        value: 0,
+        notify: true,
+        observer: 'somethingsUp',
+        reflectToAttribute: true
+      },
+      objAttr: {
+        type: Object,
+        value: function () {
+          return {};
+        },
+        notify: true
+      },
+      params: { computed: 'computeParams(bool_val, int_val)' },
+      url: { computed: 'computeUrl(int_val)' },
+      x: { observer: 'somethingsUp' }
+    },
+    ready: function () {
+      console.log('ready!');
+      console.log('dom is ready!');
+    },
+    boolAttrChanged: function (newVal, oldVal) {
+      console.log('changed from ', oldVal, ' to ', newVal);
+    },
+    somethingsUp: function (_, oldVal) {
+      console.log('something changed from', oldVal);
+    },
+    shouldAuto: function (int_val, bool_val) {
+      return int_val + bool_val;
+    },
+    isGood: function (int_val) {
+      return int_val > 1;
+    },
+    hostAttributes: { tabindex: '0' },
+    computeAuto: function (bool_val, int_val) {
+      return this.shouldAuto(this.int_val, this.bool_val);
+    },
+    computeParams: function (bool_val, int_val) {
+      return {
+        ok: this.bool_val,
+        good: this.isGood(this.int_val)
+      };
+    },
+    computeUrl: function (int_val) {
+      return '/api/v' + this.int_val + '/get';
+    }
+  });
+</script>

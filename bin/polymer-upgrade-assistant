@@ -1,0 +1,8 @@
+var upgradeHtml = require('../lib/main');
+
+console.log('\n\n\n\n\n');
+console.log(Math.random());
+console.log('\n');
+
+var result = upgradeHtml('./test/fixtures/simple-element.html');
+console.log(result);

@@ -1,8 +1,11 @@
-
 <link rel='import' href='../polymer/polymer.html'>
 <link rel='import' href='../paper-spinner/paper-spinner.html'>
 <link rel='import' href='../core-ajax/core-ajax.html'>
 
+<!--
+    This test is still incomplete, at minimum we should translate the template
+    if into a dom-if, and convert core-ajax into iron-ajax.
+ -->
 <polymer-element name='simple-element' attributes='intAttr boolAttr objAttr arrayAttr' tabindex='0'>
   <template>
     <style>
@@ -18,7 +21,7 @@
     </template>
   </template>
   <script>
-  // this is a comment
+    // this is a comment
     Polymer('simple-element', {
       publish: {
         /**
