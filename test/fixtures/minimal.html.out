@@ -1,7 +1,7 @@
 <link rel="import" href="../polymer/polymer.html">
 
-<dom-module id="minimal">
+<dom-module id="minimal-element">
 </dom-module>
 <script>
-  Polymer({ is: 'minimal' });
+  Polymer({ is: 'minimal-element' });
 </script>

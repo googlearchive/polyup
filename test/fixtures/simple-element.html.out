@@ -79,16 +79,16 @@
     },
     hostAttributes: { tabindex: '0' },
     computeAuto: function (bool_val, int_val) {
-      return this.shouldAuto(this.int_val, this.bool_val);
+      return this.shouldAuto(int_val, bool_val);
     },
     computeParams: function (bool_val, int_val) {
       return {
-        ok: this.bool_val,
-        good: this.isGood(this.int_val)
+        ok: bool_val,
+        good: this.isGood(int_val)
       };
     },
     computeUrl: function (int_val) {
-      return '/api/v' + this.int_val + '/get';
+      return '/api/v' + int_val + '/get';
     }
   });
 </script>
