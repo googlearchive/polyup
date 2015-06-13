@@ -1,0 +1,2 @@
+Polymer({ is: 'has-external-script' });
+Polymer({ is: 'also-in-that-external-script' });

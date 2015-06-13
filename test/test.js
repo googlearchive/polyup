@@ -5,6 +5,7 @@ var fs = require('fs');
 
 
 var fixturesDir = path.join(path.dirname(__filename), 'fixtures');
+var outputFilesAssertedOn = new Set();
 
 suite('Upgrading HTML', function() {
   var files = fs.readdirSync(fixturesDir);
@@ -14,9 +15,29 @@ suite('Upgrading HTML', function() {
     }
     test('upgrade ' + filename, function() {
       var fullPath = path.join(fixturesDir, filename);
-      var actual = upgradeHtml(fullPath);
-      var expected = fs.readFileSync(fullPath + '.out', 'utf-8');
-      assert.equal(expected, actual);
+      var filemapping = upgradeHtml(fullPath);
+      for (var resultFilename in filemapping) {
+        outputFilesAssertedOn.add(resultFilename + '.out');
+        var expectedOutput = fs.readFileSync(resultFilename + '.out', 'utf-8');
+        var actualOutput = filemapping[resultFilename];
+        assert.equal(expectedOutput, actualOutput);
+      }
     });
+  });
+  after(function() {
+    var outputFiles = files.filter(
+        function(filename) { return /\.out$/.test(filename); });
+    var unassertedFiles = [];
+    outputFiles.forEach(function(outfile) {
+      outfile = path.resolve(fixturesDir, outfile);
+      if (!outputFilesAssertedOn.has(outfile)) {
+        unassertedFiles.push(path.basename(outfile));
+      }
+    });
+    if (unassertedFiles.length > 0) {
+      throw new Error(
+            'No assertions made about the fixture output file ' +
+            JSON.stringify(unassertedFiles));
+    }
   });
 });
