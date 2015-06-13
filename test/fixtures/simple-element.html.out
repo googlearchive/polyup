@@ -16,7 +16,7 @@
   <template>
     <div>Hello there</div>
     <core-ajax id="ajax"></core-ajax>
-    <template if="{{boolAttr}}">
+    <template is="dom-if" if="{{boolAttr}}">
       <div>{{intAttr}} times I tell you hello.</div>
     </template>
   </template>
