@@ -1,0 +1,16 @@
+<link rel='import' href='../polymer/polymer.html'>
+
+<polymer-element name='uses-lots-of-template-repeats' noscript>
+  <template>
+    <template repeat='{{x in xs}}'>
+      <template repeat='{{y, idx in x.ys}}'>
+        <template if='{{z}}'>
+          <span>{{yes hello}}</span>
+        </template>
+      </template>
+    </template>
+    <template repeat='{{abcs}}'>
+      <span>{{a}}</span> Good
+    </template>
+  </template>
+</polymer-element>
