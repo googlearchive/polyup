@@ -9,7 +9,9 @@ var outputFilesAssertedOn = new Set();
 
 suite('Upgrading HTML', function() {
   var files = fs.readdirSync(fixturesDir);
-  var skipped = new Set(['flickr-search-app.html']);
+  var skipped = new Set([
+    'flickr-search-app.html'
+  ]);
   files.forEach(function(filename) {
     if (!/\.html$/.test(filename)) {
       return; // We only want the html files.

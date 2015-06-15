@@ -4,6 +4,7 @@
   <template>
     <div id="{{x}}"></div>
     <div id="{{computeId(x)}}"></div>
+    <div class="{{computeClass(x)}}"></div>
   </template>
 </dom-module>
 <script>
@@ -27,6 +28,9 @@
     },
     computeId: function (x) {
       return x + x;
+    },
+    computeClass: function (x) {
+      return 'big class' + x;
     }
   });
 </script>
