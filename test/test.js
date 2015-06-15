@@ -9,9 +9,13 @@ var outputFilesAssertedOn = new Set();
 
 suite('Upgrading HTML', function() {
   var files = fs.readdirSync(fixturesDir);
+  var skipped = new Set(['flickr-search-app.html']);
   files.forEach(function(filename) {
     if (!/\.html$/.test(filename)) {
       return; // We only want the html files.
+    }
+    if (skipped.has(filename)) {
+      return;
     }
     test('upgrade ' + filename, function() {
       var fullPath = path.join(fixturesDir, filename);
@@ -20,7 +24,7 @@ suite('Upgrading HTML', function() {
         outputFilesAssertedOn.add(resultFilename + '.out');
         var expectedOutput = fs.readFileSync(resultFilename + '.out', 'utf-8');
         var actualOutput = filemapping[resultFilename];
-        assert.equal(expectedOutput, actualOutput);
+        assert.equal(actualOutput, expectedOutput);
       }
     });
   });
@@ -34,7 +38,10 @@ suite('Upgrading HTML', function() {
         unassertedFiles.push(path.basename(outfile));
       }
     });
-    if (unassertedFiles.length > 0) {
+    unassertedFiles = unassertedFiles.filter(function(filename) {
+      return !skipped.has(filename.substring(0, filename.length - 4));
+    });
+    if (unassertedFiles.length !== 0) {
       throw new Error(
             'No assertions made about the fixture output file ' +
             JSON.stringify(unassertedFiles));

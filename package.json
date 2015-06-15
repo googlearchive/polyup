@@ -4,7 +4,7 @@
   "description": "Helps you upgrade from Polymer 0.5 to 1.0!",
   "main": "lib/upgrade_html.js",
   "scripts": {
-    "test": "node_modules/.bin/jshint --verbose lib/*.js bin/* test/*.js && node_modules/.bin/mocha"
+    "test": "node_modules/.bin/jshint --verbose *.js lib/*.js bin/* test/*.js && node_modules/.bin/mocha"
   },
   "keywords": [
     "polymer"
@@ -25,6 +25,9 @@
   },
   "devDependencies": {
     "jshint": "^2.8.0",
-    "mocha": "^2.2.5"
+    "mime": "^1.3.4",
+    "mocha": "^2.2.5",
+    "node-static": "^0.7.6",
+    "node-static-alias": "^0.1.3"
   }
 }

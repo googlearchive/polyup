@@ -1,0 +1,117 @@
+<!DOCTYPE html><html><head>
+  <title>A simple flickr search example</title>
+  <script src="components/webcomponentsjs/webcomponents_lite.js"></script>
+  <link rel="import" href="components/polymer/polymer.html">
+  <link rel="import" href="components/iron-ajax/iron-ajax.html">
+  <link rel="import" href="components/paper-spinner/paper-spinner.html">
+  <style>
+    body {
+      margin: 40px;
+    }
+  </style>
+</head>
+<body>
+
+
+<dom-module id="my-debouncer">
+</dom-module>
+<script>
+  Polymer({
+    is: 'my-debouncer',
+    properties: {
+      delay: {
+        type: Number,
+        value: 300,
+        notify: true
+      },
+      input: {
+        notify: true,
+        observer: 'inputChanged'
+      },
+      output: { notify: true }
+    },
+    ready: function () {
+      this.setOutput();
+    },
+    inputChanged: function () {
+      this.debounce('inputChanged', this.setOutput, this.delay);
+    },
+    setOutput: function () {
+      this.output = this.input;
+    }
+  });
+</script>
+
+<dom-module id="flickr-search-app">
+  <style>
+      paper-spinner {
+        display: block;
+      }
+      img {
+        display: inline-block;
+      }
+      label {
+        display: block;
+        padding-bottom: 6px;
+      }
+      input {
+        width: 100%;
+        max-width: 500px;
+        font-size: 16px;
+        padding: 8px;
+      }
+    </style>
+  <template>
+
+    <label>Search the public domain on Flickr:</label>
+    <input autofocus="" value="{{search::input}}">
+    <my-debouncer input="{{search}}" output="{{debouncedSearch}}">
+    </my-debouncer>
+    <iron-ajax auto="" url="https://www.flickr.com/services/rest/" handle-as="json" params="{{computeParams(apiKey, debouncedSearch)}}" last-response="{{response}}" last-error="{{error}}" loading="{{loading}}">
+    </iron-ajax>
+    <paper-spinner active="{{loading}}"></paper-spinner>
+    <template is="dom-repeat" items="{{response.photos.photo}}" as="photo">
+      <img src="{{computeSrc(photo)}}">
+    </template>
+    <template is="dom-if" if="{{error}}">
+      {{error.statusCode}} Error:
+      <pre>{{error.response}}</pre>
+    </template>
+  </template>
+</dom-module>
+<script>
+  Polymer({
+    is: 'flickr-search-app',
+    properties: {
+      search: {
+        type: String,
+        value: 'house',
+      },
+      apiKey: {
+        type: String,
+        value: '5358d9830b6865a13d251e5e1acb4c30'
+      },
+    },
+    computeParams: function (apiKey, debouncedSearch) {
+      return {
+        method: 'flickr.photos.search',
+        api_key: apiKey,
+        text: debouncedSearch,
+        license: '7,8',
+        format: 'json',
+        nojsoncallback: 1
+      };
+    },
+    computeSrc: function (photo) {
+      return 'https://farm' + photo.farm + '.staticflickr.com/' + photo.server + '/' + photo.id + '_' + photo.secret + '.jpg';
+    }
+  });
+</script>
+
+
+
+<flickr-search-app></flickr-search-app>
+
+
+
+</body></html>

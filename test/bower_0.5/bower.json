@@ -1,0 +1,21 @@
+{
+  "name": "polyup-0.5",
+  "version": "0.0.0",
+  "authors": [
+    "Peter Burns <rictic@google.com>"
+  ],
+  "license": "BSD 3 Clause",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "polymer": "polymer/polymer#0.5",
+    "paper-elements": "polymer/paper-elements#0.5",
+    "core-elements": "polymer/core-elements#0.5",
+    "webcomponentsjs": "polymer/webcomponentsjs#^0.6.0"
+  }
+}

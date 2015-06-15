@@ -3,8 +3,7 @@
 <link rel="import" href="../core-ajax/core-ajax.html">
 
 <!--
-    This test is still incomplete, at minimum we should translate the template
-    if into a dom-if, and convert core-ajax into iron-ajax.
+    This test is still incomplete, we still need to fixup the core-ajax import.
  -->
 <dom-module id="simple-element">
   <style>
@@ -15,7 +14,7 @@
     </style>
   <template>
     <div>Hello there</div>
-    <core-ajax id="ajax"></core-ajax>
+    <iron-ajax id="ajax"></iron-ajax>
     <template is="dom-if" if="{{boolAttr}}">
       <div>{{intAttr}} times I tell you hello.</div>
     </template>
@@ -33,7 +32,7 @@
         },
         notify: true
       },
-      auto: { computed: 'computeAuto(bool_val, int_val)' },
+      auto: { computed: 'shouldAuto(int_val, bool_val)' },
       boolAttr: {
         type: Boolean,
         value: false,
@@ -78,9 +77,6 @@
       return int_val > 1;
     },
     hostAttributes: { tabindex: '0' },
-    computeAuto: function (bool_val, int_val) {
-      return this.shouldAuto(int_val, bool_val);
-    },
     computeParams: function (bool_val, int_val) {
       return {
         ok: bool_val,

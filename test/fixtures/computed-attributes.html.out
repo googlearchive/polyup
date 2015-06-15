@@ -1,0 +1,32 @@
+<link rel="import" href="../polymer/polymer.html">
+
+<dom-module id="computed-attributes-test-elem">
+  <template>
+    <div id="{{x}}"></div>
+    <div id="{{computeId(x)}}"></div>
+  </template>
+</dom-module>
+<script>
+  Polymer({
+    is: 'computed-attributes-test-elem',
+    properties: {
+      identity: { computed: 'x' },
+      y: { computed: 'computeY(x)' },
+      z: { computed: 'double(x)' },
+      zz: { computed: 'computeZz(x)' }
+    },
+    x: 1,
+    double: function (val) {
+      return val * val;
+    },
+    computeY: function (x) {
+      return x + x;
+    },
+    computeZz: function (x) {
+      return this.double(x) + this.double(x);
+    },
+    computeId: function (x) {
+      return x + x;
+    }
+  });
+</script>
