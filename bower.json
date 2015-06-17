@@ -1,0 +1,15 @@
+{
+  "name": "polymer-upgrade-assistant",
+  "version": "0.0.0",
+  "authors": [
+    "Peter Burns <rictic@google.com>"
+  ],
+  "license": "BSD 3 clause",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}
