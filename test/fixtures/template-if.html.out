@@ -5,7 +5,7 @@
     <template is="dom-if" if="{{x}}">
       <template is="dom-if" if="{{y}}">
         <template is="dom-if" if="{{z}}">
-          <span>{{yes hello}}</span>
+          <span>{{yes.hello}}</span>
         </template>
       </template>
     </template>

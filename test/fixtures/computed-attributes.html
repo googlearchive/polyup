@@ -5,6 +5,10 @@
     <div id='{{x}}'></div>
     <div id='{{x + x}}'></div>
     <div class='big class{{x}}'></div>
+    <span>{{x + x}}</span>
+    <template if='{{x}}'>
+      Hi hello how {{x * x}} are you.
+    </template>
   </template>
   <script>
     Polymer('computed-attributes-test-elem', {

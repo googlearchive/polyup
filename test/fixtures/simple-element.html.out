@@ -16,7 +16,7 @@
     <div>Hello there</div>
     <iron-ajax id="ajax"></iron-ajax>
     <template is="dom-if" if="{{boolAttr}}">
-      <div>{{intAttr}} times I tell you hello.</div>
+      <div><span>{{intAttr}}</span> times I tell you hello.</div>
     </template>
   </template>
 </dom-module>

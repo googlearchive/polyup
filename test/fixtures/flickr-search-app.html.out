@@ -74,7 +74,7 @@
       <img src="{{computeSrc(photo)}}">
     </template>
     <template is="dom-if" if="{{error}}">
-      {{error.statusCode}} Error:
+      <span>{{error.statusCode}}</span> Error:
       <pre>{{error.response}}</pre>
     </template>
   </template>
