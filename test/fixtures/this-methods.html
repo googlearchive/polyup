@@ -7,7 +7,8 @@
         this.job('doThing', this.doThing, 300);
       },
       doThing: function() {
-
+        var imagePath = this.resolvePath('image.png');
+        console.log(imagePath);
       }
     });
   </script>

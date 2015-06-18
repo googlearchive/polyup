@@ -9,6 +9,8 @@
       this.debounce('doThing', this.doThing, 300);
     },
     doThing: function () {
+      var imagePath = this.resolveUrl('image.png');
+      console.log(imagePath);
     }
   });
 </script>
