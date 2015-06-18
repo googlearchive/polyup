@@ -1,0 +1,14 @@
+<link rel="import" href="../polymer/polymer.html">
+
+<dom-module id="this-methods-element">
+</dom-module>
+<script>
+  Polymer({
+    is: 'this-methods-element',
+    ready: function () {
+      this.debounce('doThing', this.doThing, 300);
+    },
+    doThing: function () {
+    }
+  });
+</script>
