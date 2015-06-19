@@ -73,7 +73,6 @@
     isGood: function (int_val) {
       return int_val > 1;
     },
-    hostAttributes: { tabindex: '0' },
     computeParams: function (bool_val, int_val) {
       return {
         ok: bool_val,
@@ -82,6 +81,7 @@
     },
     computeUrl: function (int_val) {
       return '/api/v' + int_val + '/get';
-    }
+    },
+    hostAttributes: { tabindex: '0' }
   });
 </script>

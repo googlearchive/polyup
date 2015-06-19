@@ -13,14 +13,22 @@
       },
       b: { notify: true },
       c: { notify: true },
+      d: {
+        type: Boolean,
+        value: true
+      },
+      e: {
+        type: Array,
+        value: function () {
+          return [];
+        }
+      },
       f: { observer: 'fAndGChanged' },
       g: { observer: 'fAndGChanged' },
       h: { computed: 'computeH()' },
       i: { computed: 'computeI(a, b)' },
       j: { computed: 'computeJ(b, c, h)' }
     },
-    d: true,
-    e: [],
     computeH: function () {
       return 1 + 1;
     },

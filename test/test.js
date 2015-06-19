@@ -10,7 +10,10 @@ var outputFilesAssertedOn = new Set();
 suite('Upgrading HTML', function() {
   var files = fs.readdirSync(fixturesDir);
   var skipped = new Set([
-    'flickr-search-app.html'
+    // While developing new and complex tests where the work needed to get them
+    // to pass is more than one commit, first check them in (including
+    // the desired .out file) and add the filename of the input fixture to this
+    // list.
   ]);
   files.forEach(function(filename) {
     if (!/\.html$/.test(filename)) {

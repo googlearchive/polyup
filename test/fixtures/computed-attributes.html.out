@@ -16,11 +16,14 @@
     is: 'computed-attributes-test-elem',
     properties: {
       identity: { computed: 'x' },
+      x: {
+        type: Number,
+        value: 1
+      },
       y: { computed: 'computeY(x)' },
       z: { computed: 'double(x)' },
       zz: { computed: 'computeZz(x)' }
     },
-    x: 1,
     double: function (val) {
       return val * val;
     },

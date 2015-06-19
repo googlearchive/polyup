@@ -83,14 +83,14 @@
   Polymer({
     is: 'flickr-search-app',
     properties: {
-      search: {
-        type: String,
-        value: 'house',
-      },
       apiKey: {
         type: String,
         value: '5358d9830b6865a13d251e5e1acb4c30'
       },
+      search: {
+        type: String,
+        value: 'house'
+      }
     },
     computeParams: function (apiKey, debouncedSearch) {
       return {
