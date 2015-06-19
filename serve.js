@@ -5,35 +5,47 @@ var path = require('path');
 var mime = require('mime');
 var fs = require('fs');
 
-var testDir = path.resolve(path.join(path.dirname(__filename), 'test'));
-var fileServer = new nodeStatic.Server(testDir, {cache: false});
+var baseDir = path.resolve(path.dirname(__filename));
+var fileServer = new nodeStatic.Server(baseDir, {cache: false});
 
 function getFileName(reqPath) {
+  var match = reqPath.match(/\/$/);
+  if (match) {
+    reqPath += 'index.html';
+  }
   var match = reqPath.match(/^\/0.5\/components\/(.*)/);
   if (match) {
-    return 'bower_0.5/bower_components/' + match[1];
+    return 'test/bower_0.5/bower_components/' + match[1];
   }
   match = reqPath.match(/^\/1.0\/components\/(.*)/);
   if (match) {
-    return 'bower_1.0/bower_components/' + match[1];
+    return 'test/bower_1.0/bower_components/' + match[1];
   }
   match = reqPath.match(/^\/0.5\/(.*)/);
   if (match) {
-    return 'fixtures/' + match[1];
+    return 'test/fixtures/' + match[1];
   }
   match = reqPath.match(/^\/1.0\/(.*)/);
   if (match) {
-    return 'fixtures/' + match[1] + '.out';
+    return 'test/fixtures/' + match[1] + '.out';
   }
-  return '/unknown';
+  match = reqPath.match(/^\/dist\/(.*)/);
+  if (match) {
+    return 'dist/' + match[1];
+  }
+  match = reqPath.match(/^\/components\/(.*)/);
+  if (match) {
+    return 'bower_components/' + match[1];
+  }
+  return 'web' + reqPath;
 }
 
 var pathsThatShouldExist = [
-    'bower_0.5/bower_components/polymer/polymer.html',
-    'bower_1.0/bower_components/polymer/polymer.html'
+    'test/bower_0.5/bower_components/polymer/polymer.html',
+    'test/bower_1.0/bower_components/polymer/polymer.html'
 ];
 pathsThatShouldExist.forEach(function(filename) {
-  filename = path.join(testDir, filename);
+  filename = path.join(baseDir, filename);
   try {
     fs.statSync(filename);
   } catch(_ignored) {

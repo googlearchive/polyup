@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Polyup!</title>
+  <script src='/components/ace-builds/src-noconflict/ace.js'></script>
+  <style>
+    #left {
+      display: inline-block;
+      width: 50%;
+    }
+    #right {
+      display: inline-block;
+      width: 50%;
+      float: right;
+    }
+    #right > * {
+      margin-left: 20px;
+    }
+    #editor {
+      width: 100%;
+      min-height: 500px;
+    }
+    #output {
+      width: 100%;
+      min-height: 500px;
+    }
+    #wrapper {
+      width: 100%;
+    }
+    #output .ace_cursor {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+<h1>polyup</h1>
+
+<div id='wrapper'>
+  <div id='left'>
+    <label>Polymer 0.5 input:</label>
+    <div id='editor'>
+      <!-- This will be an ace editor -->
+    </div>
+  </div>
+  <div id='right'>
+    <label>Polymer 1.0 output:</label>
+    <div id='output'>
+      <!-- This will be a read-only ace editor -->
+    </div>
+  </div>
+</div>
+<script src='/dist/browser_package.js'></script>
+<script>
+  var editor = ace.edit("editor");
+  editor.$blockScrolling = Infinity
+  editor.setTheme("ace/theme/monokai");
+  editor.getSession().setMode("ace/mode/html");
+  editor.getSession().setTabSize(2);
+  editor.getSession().setUseWrapMode(true);
+  var output = ace.edit('output');
+  output.$blockScrolling = Infinity
+  output.setReadOnly(true);
+  output.setTheme("ace/theme/monokai");
+  output.getSession().setMode('ace/mode/html');
+  output.getSession().setUseWrapMode(true);
+  output.setHighlightActiveLine(false);
+  output.setHighlightGutterLine(false);
+  function onChange() {
+    var scrollPos = output.getSession().getScrollTop();
+    var editorValue = editor.getValue();
+    // need to delay this because
+    requestAnimationFrame(function() {
+      var outputVal = upgradeHtml(editor.getValue());
+      output.setValue(outputVal);
+      output.clearSelection()
+      output.getSession().setScrollTop(scrollPos);
+    })
+  }
+  editor.getSession().on('change', onChange);
+  fetch('/0.5/flickr-search-app.html').then(function(response) {
+    return response.text()
+  }).then(function(responseText) {
+    editor.setValue(responseText);
+    editor.clearSelection();
+    editor.scrollToLine(0);
+    output.scrollToLine(0);
+  });
+</script>
+</body>
+</html>
