@@ -13,7 +13,7 @@ function getFileName(reqPath) {
   if (match) {
     reqPath += 'index.html';
   }
-  var match = reqPath.match(/^\/0.5\/components\/(.*)/);
+  match = reqPath.match(/^\/0.5\/components\/(.*)/);
   if (match) {
     return 'test/bower_0.5/bower_components/' + match[1];
   }
