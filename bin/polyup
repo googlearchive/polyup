@@ -1,3 +1,4 @@
+// TODO: actually implement a binary here
 var upgradeHtml = require('../lib/upgrade_html');
 
 console.log('\n\n\n\n\n');
