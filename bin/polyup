@@ -1,9 +1,0 @@
-// TODO: actually implement a binary here
-var upgradeHtml = require('../lib/upgrade_html');
-
-console.log('\n\n\n\n\n');
-console.log(Math.random());
-console.log('\n');
-
-var result = upgradeHtml('./test/fixtures/simple-element.html');
-console.log(result);
