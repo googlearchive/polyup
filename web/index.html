@@ -70,7 +70,7 @@
     var editorValue = editor.getValue();
     // need to delay this because
     requestAnimationFrame(function() {
-      var outputVal = upgradeHtml(editor.getValue());
+      var outputVal = Polyup.upgradeHtml(editor.getValue());
       output.setValue(outputVal);
       output.clearSelection()
       output.getSession().setScrollTop(scrollPos);
