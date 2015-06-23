@@ -1,4 +1,5 @@
 <link rel='import' href='../bower_components/polymer/polymer.html'>
+<link rel='import' href='../bower_components/iron-ajax/iron-ajax.html'>
 
 <script src='../dist/browser_package.js'></script>
 <script src='../bower_components/ace-builds/src-noconflict/ace.js'></script>
@@ -55,6 +56,9 @@
             Full App
           </option>
         </select>
+        <iron-ajax auto url='{{selectedSample}}' handle-as='text'
+                   last-response='{{editorInput}}'>
+        </iron-ajax>
         <div id='editor'>
           <!-- This will be an ace editor -->
         </div>
@@ -72,8 +76,8 @@
   Polymer({
     is: 'polyup-compare',
     properties: {
-      selectedSample: {
-        observer: '_selectedSampleChanged'
+      editorInput: {
+        observer: '_editorInputChanged'
       }
     },
     ready: function() {
@@ -110,18 +114,12 @@
       }
       editor.getSession().on('change', onChange);
       this.selectedSample = this.$.select.value;
-      this._selectedSampleChanged();
     },
-    _selectedSampleChanged: function() {
-      var self = this;
-      fetch(this.selectedSample).then(function(response) {
-        return response.text()
-      }).then(function(responseText) {
-        self.editor.setValue(responseText);
-        self.editor.clearSelection();
-        self.editor.scrollToLine(0);
-        self.output.scrollToLine(0);
-      });
+    _editorInputChanged: function() {
+      this.editor.setValue(this.editorInput);
+      this.editor.clearSelection();
+      this.editor.scrollToLine(0);
+      this.output.scrollToLine(0);
     }
   })
 
