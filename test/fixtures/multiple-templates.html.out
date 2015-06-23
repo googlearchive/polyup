@@ -1,0 +1,27 @@
+<link rel="import" href="../polymer/polymer.html">
+
+<dom-module id="uses-multiple-templates">
+  <template>
+    This is the main template.
+    <template is="dom-if" if="{{yes}}">
+      This template if should be upgraded.
+    </template>
+    So should this expression: <span>{{computeExpression1()}}</span>
+  </template>
+  <template>
+    This is an additional template. It should be a child of dom-module, but
+    it shouldn't be modified otherwise.
+    <template if="{{no}}">
+      This template if should be left alone.
+    </template>
+    So too this expression shouldn't be touched: {{2 * 2}}
+  </template>
+</dom-module>
+<script>
+  Polymer({
+    is: 'uses-multiple-templates',
+    computeExpression1: function () {
+      return 1 + 1;
+    }
+  });
+</script>
