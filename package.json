@@ -7,7 +7,8 @@
   "scripts": {
     "test": "node_modules/.bin/jshint --verbose *.js build/*.js lib/*.js test/*.js && node_modules/.bin/mocha",
     "browserify": "mkdir -p ./dist/ && browserify ./lib/browser_main.js -o ./dist/browser_package.js",
-    "serve": "npm run browserify && node serve.js"
+    "serve": "npm run browserify && node serve.js",
+    "deps": "npm install && bower install && cd test/bower_0.5 && bower install && cd ../bower_1.0 && bower install"
   },
   "keywords": [
     "polymer"
