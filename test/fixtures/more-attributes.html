@@ -1,0 +1,19 @@
+<link rel="import" href="../polymer/polymer.html">
+
+<polymer-element name="attributes-element" attributes="a b c">
+  <script>
+    Polymer({
+      a: 10,
+      d: true,
+      e: [],
+      observe: {
+        'f g': 'fAndGChanged'
+      },
+      computed: {
+        h: '1 + 1',
+        i: 'a + b',
+        j: 'callOk(b, c + h)'
+      }
+    })
+  </script>
+</polymer-element>

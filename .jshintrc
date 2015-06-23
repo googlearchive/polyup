@@ -1,0 +1,6 @@
+{
+  "node": true,
+  "unused": true,
+  "eqnull": true,
+  "predef": [ "Map", "Set" ]
+}

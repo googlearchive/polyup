@@ -1,0 +1,42 @@
+<link rel="import" href="../polymer/polymer.html">
+
+<dom-module id="attributes-element">
+</dom-module>
+<script>
+  Polymer({
+    is: 'attributes-element',
+    properties: {
+      a: {
+        type: Number,
+        value: 10,
+        notify: true
+      },
+      b: { notify: true },
+      c: { notify: true },
+      d: {
+        type: Boolean,
+        value: true
+      },
+      e: {
+        type: Array,
+        value: function () {
+          return [];
+        }
+      },
+      f: { observer: 'fAndGChanged' },
+      g: { observer: 'fAndGChanged' },
+      h: { computed: 'computeH()' },
+      i: { computed: 'computeI(a, b)' },
+      j: { computed: 'computeJ(b, c, h)' }
+    },
+    computeH: function () {
+      return 1 + 1;
+    },
+    computeI: function (a, b) {
+      return a + b;
+    },
+    computeJ: function (b, c, h) {
+      return this.callOk(b, c + h);
+    }
+  });
+</script>

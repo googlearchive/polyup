@@ -1,0 +1,21 @@
+{
+  "name": "polyup-1.0",
+  "version": "0.0.0",
+  "authors": [
+    "Peter Burns <rictic@google.com>"
+  ],
+  "license": "BSD 3 Clause",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "polymer": "polymer/polymer#~1.0.3",
+    "iron-elements": "polymerelements/iron-elements#~1.0.0",
+    "paper-elements": "polymerelements/paper-elements#~1.0.1",
+    "neon-elements": "polymerelements/neon-elements#~1.0.0"
+  }
+}

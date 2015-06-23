@@ -1,0 +1,17 @@
+<link rel="import" href="../polymer/polymer.html">
+
+<dom-module id="extends-builtin" extends="input">
+</dom-module>
+<script>
+  Polymer({ is: 'extends-builtin' });
+</script>
+
+<!--
+    TODO(polyup): Inheriting from other custom elements is not yet supported.
+    See: https://www.polymer-project.org/1.0/docs/migration.html#inheritance
+ -->
+<dom-module id="extends-custom" extends="paper-input">
+</dom-module>
+<script>
+  Polymer({ is: 'extends-custom' });
+</script>

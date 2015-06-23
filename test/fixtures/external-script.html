@@ -1,0 +1,22 @@
+<link rel='import' href='../polymer/polymer.html'>
+
+<polymer-element name='has-external-script'>
+  <template></template>
+  <script src='external-script.js'></script>
+</polymer-element>
+
+<polymer-element name='also-in-that-external-script'>
+</polymer-element>
+
+<script src='an-unaffiliated-script.js'></script>
+
+<polymer-element name='has-its-own-script'>
+  <script>
+    Polymer('has-its-own-script', {});
+  </script>
+</polymer-element>
+
+<polymer-element name='in-the-above-script'></polymer-element>
+
+
+<script src="//google.com/jquery.js"></script>

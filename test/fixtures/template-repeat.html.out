@@ -1,0 +1,23 @@
+<link rel="import" href="../polymer/polymer.html">
+
+<dom-module id="uses-lots-of-template-repeats">
+  <template>
+    <template is="dom-repeat" items="{{xs}}" as="x">
+      <template is="dom-repeat" items="{{x.ys}}" as="y" index-as="idx">
+        <template is="dom-if" if="{{z}}">
+          <span>{{yes.hello}}</span>
+        </template>
+      </template>
+    </template>
+    <!--
+        TODO(polyup): convert bindings inside this dom-repeat instance below
+        from {{foo}} to {{item.foo}}
+     -->
+    <template is="dom-repeat" items="{{abcs}}">
+      <span>{{a}}</span> Good
+    </template>
+  </template>
+</dom-module>
+<script>
+  Polymer({ is: 'uses-lots-of-template-repeats' });
+</script>

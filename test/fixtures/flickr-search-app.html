@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>A simple flickr search example</title>
+  <script src='components/webcomponentsjs/webcomponents.js'></script>
+  <link rel='import' href='components/polymer/polymer.html'>
+  <link rel='import' href='components/core-ajax/core-ajax.html'>
+  <link rel='import' href='components/paper-spinner/paper-spinner.html'>
+  <style>
+    body {
+      margin: 40px;
+    }
+  </style>
+</head>
+<body>
+
+
+<polymer-element name='my-debouncer' attributes='input output delay'>
+  <script>
+    Polymer({
+      delay: 300,
+      ready: function() {
+        this.setOutput();
+      },
+      inputChanged: function() {
+        this.job('inputChanged', this.setOutput, this.delay);
+      },
+      setOutput: function() {
+        this.output = this.input;
+      }
+    })
+  </script>
+</polymer-element>
+
+<polymer-element name='flickr-search-app'>
+  <template>
+    <style>
+      paper-spinner {
+        display: block;
+      }
+      img {
+        display: inline-block;
+      }
+      label {
+        display: block;
+        padding-bottom: 6px;
+      }
+      input {
+        width: 100%;
+        max-width: 500px;
+        font-size: 16px;
+        padding: 8px;
+      }
+    </style>
+
+    <label>Search the public domain on Flickr:</label>
+    <input autofocus value='{{search}}'>
+    <my-debouncer input='{{search}}' output='{{debouncedSearch}}'>
+    </my-debouncer>
+    <core-ajax
+        auto url='https://www.flickr.com/services/rest/' handleAs='json'
+        params='{{ {method: "flickr.photos.search", api_key: apiKey, text:debouncedSearch, license:"7,8", format: "json", nojsoncallback: 1 } }}'
+        response='{{response}}' error='{{error}}' loading='{{loading}}'>
+    </core-ajax>
+    <paper-spinner active='{{loading}}'></paper-spinner>
+    <template repeat='{{photo in response.photos.photo}}'>
+      <img src='https://farm{{photo.farm}}.staticflickr.com/{{photo.server}}/{{photo.id}}_{{photo.secret}}.jpg'>
+    </template>
+    <template if='{{error}}'>
+      {{error.statusCode}} Error:
+      <pre>{{error.response}}</pre>
+    </template>
+  </template>
+  <script>
+    Polymer({
+      search: 'house',
+      apiKey: '5358d9830b6865a13d251e5e1acb4c30'
+    });
+  </script>
+</polymer-element>
+
+
+
+<flickr-search-app></flickr-search-app>
+
+</body>
+</html>
