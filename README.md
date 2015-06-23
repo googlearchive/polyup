@@ -33,3 +33,10 @@ the v0.5 version of your code!
 This will install `polyup` to the bin directory configured when node was
 installed. (e.g. `/usr/local/bin/polyup`).  You may need `sudo`
 for this step.
+
+## Reporting Bugs
+
+`polyup` is still in active development and it definitely has bugs. However,
+given that so many people are looking at migrating to 1.0 right now we thought
+that it was better to get what we have now out there now, even if it won't be
+right for everyone.
