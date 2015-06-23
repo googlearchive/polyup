@@ -2,13 +2,11 @@
 <html>
   <head>
     <meta charset='utf-8'>
-    <meta http-equiv="X-UA-Compatible" content="chrome=1">
 
     <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
     <link rel="stylesheet" type="text/css" href="stylesheets/github-dark.css" media="screen">
-    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print">
+    <title>polyup by the polymer team</title>
 
-    <title>polyup by PolymerLabs</title>
   </head>
 
   <body>
@@ -16,32 +14,42 @@
     <header>
       <div class="container">
         <h1>polyup</h1>
-        <h2>A helpful assistant for migrating from Polymer v0.5 to 1.0. Does many of the boring mechanical parts for you.</h2>
+        <h2>
+          A helpful assistant for migrating from Polymer 0.5 to 1.0.
+          <br>
+          Does many of the boring mechanical parts for you.
+        </h2>
 
         <section id="downloads">
-          <a href="https://github.com/PolymerLabs/polyup/zipball/master" class="btn">Download as .zip</a>
-          <a href="https://github.com/PolymerLabs/polyup/tarball/master" class="btn">Download as .tar.gz</a>
-          <a href="https://github.com/PolymerLabs/polyup" class="btn btn-github"><span class="icon"></span>View on GitHub</a>
+          <a href="https://github.com/PolymerLabs/polyup" class="btn btn-github"><span class="icon"></span>View full docs and more on GitHub</a>
         </section>
       </div>
     </header>
 
     <div class="container">
       <section id="main_content">
-        <p>The change from Polymer 0.5 to 1.0 is a large one, as many things changed as we
-transitioned from an exploratory beta releases to a stable production-ready
-product.</p>
+        <p>
+          The change from Polymer 0.5 to 1.0 is a large one, as many things
+          changed as we transitioned from an exploratory beta releases to a
+          stable production-ready product.
+        </p>
 
-<p>Fortunately many of these changes can be done automatically. <code>polyup</code> will
-parse your HTML and any javascript in either inline or external scripts and
-perform a number of automatic transformations to your code.</p>
+        <p>
+          Fortunately many of these changes can be done automatically.
+          <code>polyup</code> will parse your HTML and any javascript in either
+          inline or external scripts and perform a number of automatic
+          transformations to your code.
+        </p>
 
-<p>Install it with <code>npm install polyup</code></p>
+        <p>Install it with <code>npm install polyup</code></p>
 
-<p><code>demo will go here</code></p>
       </section>
     </div>
 
-    
+    <script src='/bower_components/webcomponentsjs/webcomponents.js'></script>
+    <link rel='import' href='/local_components/polyup-compare.html'>
+
+    <polyup-compare></polyup-compare>
+
   </body>
 </html>

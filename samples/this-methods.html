@@ -1,0 +1,15 @@
+<link rel="import" href="../polymer/polymer.html">
+
+<polymer-element name="this-methods-element">
+  <script>
+    Polymer({
+      ready: function() {
+        this.job('doThing', this.doThing, 300);
+      },
+      doThing: function() {
+        var imagePath = this.resolvePath('image.png');
+        console.log(imagePath);
+      }
+    });
+  </script>
+</polymer-element>

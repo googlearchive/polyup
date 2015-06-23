@@ -1,0 +1,16 @@
+<link rel='import' href='../polymer/polymer.html'>
+
+<polymer-element name='uses-lots-of-template-ifs' noscript>
+  <template>
+    <template if='{{x}}'>
+      <template if='{{y}}'>
+        <template if='{{z}}'>
+          <span>{{yes.hello}}</span>
+        </template>
+      </template>
+    </template>
+    <template if='{{abc}}'>
+      <span>Good</span>
+    </template>
+  </template>
+</polymer-element>

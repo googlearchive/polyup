@@ -1,0 +1,27 @@
+<link rel='import' href='../polymer/polymer.html'>
+
+<polymer-element name='computed-attributes-test-elem'>
+  <template>
+    <div id='{{x}}'></div>
+    <div id='{{x + x}}'></div>
+    <div class='big class{{x}}'></div>
+    <span>{{x + x}}</span>
+    <template if='{{x}}'>
+      Hi hello how {{x * x}} are you.
+    </template>
+  </template>
+  <script>
+    Polymer('computed-attributes-test-elem', {
+      x: 1,
+      computed: {
+        'y': 'x + x',
+        z: 'double(x)',
+        zz: 'double(x) + double(x)',
+        'identity': 'x'
+      },
+      double: function(val) {
+        return val * val;
+      }
+    });
+  </script>
+</polymer-element>

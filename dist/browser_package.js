@@ -1,6 +1,16 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+/**
+ * @license
+ * Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
+ * This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+ * The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+ * The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+ * Code distributed by Google as part of the polymer project is also
+ * subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+ */
+
 // Do the stupidest possible replacement of the fs module for polyup's needs
-// in the browser.
+// in the browser. Used by browser_main.js and npm run browserify
 var theFileName = '';
 var theContents = '';
 
@@ -17,32 +27,443 @@ module.exports = {
     }
     return theContents;
   }
-}
-
-},{}],2:[function(require,module,exports){
-var upgradeHtml = require('./upgrade_html');
-var fs = require('fs');
-
-window.upgradeHtml = function(htmlString) {
-  fs._setFileContents('/foo.html', htmlString);
-  return upgradeHtml('/foo.html')['/foo.html'];
 };
 
-},{"./upgrade_html":4,"fs":1}],3:[function(require,module,exports){
-'use strict';
+},{}],2:[function(require,module,exports){
+/**
+ * @license
+ * Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
+ * This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+ * The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+ * The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+ * Code distributed by Google as part of the polymer project is also
+ * subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+ */
 
-module.exports = {
-  'core-ajax': {
-    name: 'iron-ajax',
-    attributes: {
-      handleas: 'handle-as',
-      response: 'last-response',
-      error: 'last-error'
-    }
+// The browserify entrance for the script. Exports upgradeHtml as a global.
+var upgradeHtml = require('./upgrade_html');
+var fs = require('fs'); // Note, this is a fake. See build/fake-fs.js
+
+window.Polyup = {
+  upgradeHtml: function(htmlString) {
+    fs._setFileContents('/foo.html', htmlString);
+    return upgradeHtml('/foo.html')['/foo.html'];
   }
 };
 
+},{"./upgrade_html":4,"fs":1}],3:[function(require,module,exports){
+/**
+ * @license
+ * Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
+ * This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+ * The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+ * The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+ * Code distributed by Google as part of the polymer project is also
+ * subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+ */
+'use strict';
+
+module.exports = {
+  'context-free-parser': {
+    notice: 'This element has been superseded by the hydrolisis ' +
+            'javascript library'
+  },
+  'core-a11y-keys': {
+    name: 'iron-a11y-keys'
+  },
+  'core-ajax': {
+    name: 'iron-ajax',
+    attributes: {
+      'handleas': 'handle-as',
+      'response': 'last-response',
+      'error': 'last-error'
+    },
+    deprecatedAttributes: ['progress']
+  },
+  'core-animated-pages': {
+    name: 'neon-animated-pages',
+    dirname: 'neon-animation',
+    notice: 'This element\'s API has changed significantly.'
+    // needs more doc
+  },
+  'core-animation': {
+    name: 'neon-animation',
+    notice: 'This element\'s API has changed significantly.'
+    // needs more doc
+  },
+  'core-collapse': {
+    name: 'iron-collapse',
+    deprecatedAttributes: ['target', 'duration', 'fixedsize', 'allowoverflow']
+  },
+  'core-component-page': {
+    name: 'iron-component-page',
+    attributes: {
+      'sources': 'src',
+      'moduleName': 'active'
+    }
+  },
+  'core-doc-viewer': {
+    name: 'iron-doc-viewer',
+    notice: 'This element no longer extracts element metadata itself, ' +
+            'it expects you to use the hydrolisis library to do so.'
+  },
+  'core-drag-drop': {
+    noReplacement: true
+  },
+  'core-drawer-panel': {
+    name: 'paper-drawer-panel',
+    attributes: {
+      'drawerwidth': 'drawer-width',
+      'responsivewidth': 'responsive-width',
+      'defaultselected': 'default-selected',
+      'rightdrawer': 'right-drawer',
+      'disableswipe': 'disable-swipe',
+      'forcenarrow': 'force-narrow',
+      'disableedgeswipe': 'disable-edge-swipe'
+    }
+  },
+  'core-dropdown': {
+    noReplacement: true
+  },
+  'core-dropdown-menu': {
+    noReplacement: true
+  },
+  'core-elements': {
+    name: 'iron-elments',
+    // Some core-elements got moved into paper-elements, so we must import
+    // them as well.
+    additionalImports: [
+      'paper-elements/paper-elements.html'
+    ],
+    elementName: null
+  },
+  'core-field': {
+    noReplacement: true
+  },
+  'core-focusable': {
+    noReplacement: true
+  },
+  'core-header-panel': {
+    name: 'paper-header-panel'
+  },
+  'core-icon': {
+    name: 'iron-icon',
+    deprecatedAttributes: ['alt']
+  },
+  'core-icon-button': {
+    name: 'paper-icon-button',
+  },
+  'core-icons': {
+    name: 'iron-icons'
+  },
+  'core-iconset': {
+    name: 'iron-iconset',
+    attributes: {
+      'iconsize': 'size'
+    }
+  },
+  'core-iconset-svg': {
+    name: 'iron-iconset-svg',
+    attributes: {
+      'iconsize': 'size'
+    }
+  },
+  'core-image': {
+    name: 'iron-image',
+    attributes: {
+      'load': {
+        name: 'prevent-load',
+        notice: 'The `load` attribute was inverted and renamed ' +
+                'to prevent-load. polyup has renamed it here, but you must ' +
+                'invert your expression.'
+      }
+    },
+    deprecatedAttributes: ['role']
+  },
+  'core-input': {
+    name: 'iron-input',
+    attributes: {
+      'value': 'bind-value',
+      'committedvalue': {
+        name: 'bind-value',
+        notice: 'committedValue was removed from core-input. bind-value will ' +
+                'fire for every change, not just ones that have been ' +
+                '\'committed\' by the user.'
+      },
+      'preventinvalidinput': 'prevent-invalid-input'
+    }
+  },
+  'core-item': {
+    name: 'paper-item',
+    attributes: {
+      'label': {
+        notice: 'core-item has been redesigned to be more customizable. ' +
+                'Look into paper-item and paper-item-body.'
+      },
+      'icon': {
+        notice: 'core-item has been redesigned to be more customizable. ' +
+                'Look into paper-item and paper-item-body.'
+      },
+      'src': {
+        notice: 'core-item has been redesigned to be more customizable. ' +
+                'Look into paper-item and paper-item-body.'
+      }
+    }
+  },
+  'core-label': {
+    noReplacement: true
+  },
+  'core-layout-grid': {
+    noReplacement: true,
+  },
+  'core-layout-trbl': {
+    noReplacement: true,
+  },
+  'core-list': {
+    noReplacement: true,
+  },
+  'core-localstorage': {
+    name: 'iron-localstorage',
+    notice: 'Warning: do not pass subproperty bindings to iron-localstorage ' +
+            'until https://github.com/Polymer/polymer/issues/1550 is ' +
+            'resolved. Local storage will be blown away. No ' +
+            '`<iron-localstorage value="{{foo.bar}}"`.',
+    attributes: {
+      'useraw': 'use-raw',
+      'autosavedisabled': 'auto-save-disabled'
+    }
+  },
+  'core-media-query': {
+    name: 'iron-media-query',
+    attributes: {
+      'querymatches': 'query-matches'
+    }
+  },
+  'core-menu': {
+    name: 'paper-menu',
+    notice: 'The class .core-selected has been renamed to .iron-selected',
+    mixins: ['core-selector'],
+    attributes: {
+      'multi': {
+        notice: 'When multi is true, instead of the `selected` and ' +
+                '`selectedItem` attributes, `selectedValues` and ' +
+                '`selectedItems` are used.'
+      },
+    },
+  },
+  'core-menu-button': {
+    noReplacement: true,
+  },
+  'core-meta': {
+    name: 'iron-meta',
+    notice: 'core-meta was significantly redesigned in the transition to ' +
+            'iron-meta. See: https://github.com/PolymerElements/iron-meta'
+  },
+  'core-overlay': {
+    name: 'iron-overlay-behavior',
+    reimplementedAsBehavior: 'Polymer.IronOverlayBehavior',
+  },
+  'core-pages': {
+    name: 'iron-pages',
+    mixins: ['core-selector', 'core-resizable']
+  },
+  'core-range': {
+    name: 'iron-range-behavior',
+    reimplementedAsBehavior: 'Polymer.IronRangeBehavior',
+  },
+  'core-resizable': {
+    name: 'iron-resizable-behavior',
+    reimplementedAsBehavior: 'Polymer.IronResizableBehavior',
+  },
+  'core-scaffold': {
+    noReplacement: true,
+  },
+  'core-scroll-header-panel': {
+    name: 'paper-scroll-header-panel',
+    mixins: ['core-resizable'],
+    attributes: {
+      'nodissolve': 'no-dissolve',
+      'noreveal': 'no-reveal',
+      'keepcondensedheader': 'keep-condensed-header',
+      'headerheight': 'header-height',
+      'condensedheaderheight': 'condensed-header-height',
+      'scrollawaytopbar': 'scroll-away-topbar'
+    }
+  },
+  'core-scroll-threshold': {
+    noReplacement: true
+  },
+  'core-selection': {
+    name: 'iron-selection',
+    dirname: 'iron-selector',
+    reimplementedAsBehavior: 'Polymer.IronSelection',
+    deprecatedAttributes: ['multi']
+  },
+  'core-selector': {
+    name: 'iron-selector',
+    attributes: {
+      'valueattr': 'attr-for-selected',
+      'selectedclass': 'selected-class',
+      'selecteditem': 'selected-item',
+      'selectedattribute': 'selected-attribute',
+      'excludedlocalnames': {
+        name: 'selectable',
+        notice: 'excludedLocalNames was renamed to selectable, and is now ' +
+                'a CSS selector rather than a space-separated set of ' +
+                'element types.'
+      }
+    },
+    deprecatedAttributes: [
+        'selectedproperty', 'selectedmodel', 'selectedindex', 'target',
+        'itemsselector', 'activateevent', 'notap']
+  },
+  'core-shared-lib': {
+    name: 'iron-jsonp-library',
+    reimplementedAsBehavior: 'Polymer.IronJsonpLibraryBehavior',
+    attributes: {
+      'url': 'library-url',
+      'callbackname': 'callback-name',
+      'notifyevent': 'notify-event'
+    }
+  },
+  'core-signals': {
+    name: 'iron-signals'
+  },
+  'core-splitter': {
+    noReplacement: true
+  },
+  'core-style': {
+    notice: 'Polymer 1.0 has a much better solution for styling elements ' +
+            'and theming than core-style. The new solution uses ' +
+            'CSS Variables. See: https://www.polymer-project.org/1.0/' +
+            'docs/devguide/styling.html#xscope-styling-details'
+  },
+  'core-toolbar': {
+    name: 'paper-toolbar',
+    attributes: {
+      'middleJustify': 'middle-justify',
+      'bottomJustify': 'bottom-justify'
+    }
+  },
+  'core-tooltip': {
+    noReplacement: true
+  },
+  'core-transition': {
+    name: 'neon-animation-behavior',
+    dirname: 'neon-animation',
+    reimplementedAsBehavior: 'Polymer.NeonAnimationBehavior'
+  },
+
+  'paper-button': {
+    deprecatedAttributes: ['recenteringtouch', 'fill']
+  },
+  'paper-checkbox': {
+    deprecatedAttributes: ['label']
+  },
+  'paper-dialog': {
+    // I'm not confident that this is right
+    attributes: {
+      'autoclosedisabled': 'no-cancel-on-outside-click',
+      'autofocusdisabled': 'no-auto-focus',
+      'backdrop': 'with-backdrop'
+    },
+    deprecatedAttributes: [
+        'heading', 'layered', 'target', 'sizingtarget',
+        'closeattribute', 'closeselector', 'transition']
+  },
+  'paper-dropdown': {
+    noReplacement: true
+  },
+  'paper-dropdown-menu': {
+    noReplacement: true
+  },
+  'paper-elements': {
+  },
+  'paper-fab': {
+    deprecatedAttributes: ['raised', 'recenteringtouch', 'fill']
+  },
+  'paper-icon-button': {
+    deprecatedAttributes: ['recenteringtouch', 'fill']
+  },
+  'paper-input': {
+    attributes: {
+      'floatinglabel': 'always-float-label'
+    },
+    deprecatedAttributes: ['committedvalue']
+  },
+  'paper-item': {
+    // nothing to do
+  },
+  'paper-menu-button': {
+    noReplacement: true
+  },
+  'paper-progress': {
+    deprecatedAttributes: ['step']
+  },
+  'paper-radio-button': {
+    deprecatedAttributes: ['label']
+  },
+  'paper-radio-group': {
+    mixins: ['core-selector'],
+  },
+  'paper-ripple': {
+    deprecatedAttributes: ['backgroundfill', 'pixeldensity']
+  },
+  'paper-shadow': {
+    notice: 'The paper-shadow element has been removed in favor of a set of ' +
+            'CSS Variables to provide the same functionality. ' +
+            'See: https://github.com/PolymerElements/' +
+            'paper-styles/blob/master/shadow.html'
+  },
+  'paper-slider': {
+    attributes: {
+      'secondaryprogress': 'secondary-progress',
+      'maxmarkers': 'max-markers'
+    }
+  },
+  'paper-spinner': {
+    // nothing to do
+  },
+  'paper-tabs': {
+    attributes: {
+      'nobar': 'no-bar',
+      'noslide': 'no-slide',
+      'disabledrag': 'disable-drag',
+      'hidescrollbuttons': 'hide-scroll-buttons',
+      'alignbottom': 'align-bottom'
+    }
+  },
+  'paper-toast': {
+    attributes: {
+      'opened': 'visible',
+    },
+    deprecatedAttributes: [
+        'responsivewidth', 'swipedisabled', 'autoclosedisabled', 'narrowmode']
+  },
+  'paper-toggle-button': {
+  },
+
+  'Polymer.CoreSelection': {
+    name: 'Polymer.IronSelection',
+    elementName: 'core-selection'
+  },
+  'Polymer.CoreResizable': {
+    name: 'Polymer.IronResizableBehavior',
+    elementName: 'core-resizable'
+  },
+};
+
 },{}],4:[function(require,module,exports){
+/**
+ * @license
+ * Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
+ * This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+ * The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+ * The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+ * Code distributed by Google as part of the polymer project is also
+ * subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+ */
+
 'use strict';
 
 var whacko = require('whacko');
@@ -93,7 +514,7 @@ function upgradeHtml(filename) {
     // Unknown attributes are probably intended to be published with
     // hostAttributes
     var hostAttrs = {};
-    var knownAttributes = ['name', 'attributes', 'noscript', 'extends'];
+    var knownAttributes = ['name', 'attributes', 'noscript', 'extends', 'id'];
     for (var attr in polyElem.attribs) {
       if (_.contains(knownAttributes, attr)) {
         continue;
@@ -107,7 +528,7 @@ function upgradeHtml(filename) {
 
     if ('extends' in polyElem.attribs) {
       domModule.attr('extends', polyElem.attribs.extends);
-      if (polyElem.attribs.extends.indexOf('-') != -1) {
+      if (_.contains(polyElem.attribs.extends, '-')) {
         insertHtmlCommentBefore($, polyElem, [
           'TODO(polyup): Inheriting from other custom ' +
               'elements is not yet supported.',
@@ -118,11 +539,6 @@ function upgradeHtml(filename) {
     }
 
     var templateChildren = $(polyElem).find('template');
-    if (templateChildren.length > 1) {
-      throw new Error(
-          'Expected a <polymer-element> to have at most one ' +
-          'direct <template> child.');
-    }
     var template;
     if (templateChildren[0]) {
       template = templateChildren[0];
@@ -138,10 +554,12 @@ function upgradeHtml(filename) {
         domModule.append('\n');
       });
 
-      // Then move the template in after
-      domModule.append('  ');
-      domModule.append(template);
-      domModule.append('\n');
+      // Then move all templates in after
+      templateChildren.each(function(_ignored, templateChild) {
+        domModule.append('  ');
+        domModule.append(templateChild);
+        domModule.append('\n');
+      });
     }
 
     // Handle noscript
@@ -153,7 +571,7 @@ function upgradeHtml(filename) {
 
     // Upgrade <template if>
     var templateIfs = recursivelyMatchInsideTemplates(
-        $, $(domModule), 'template[if]');
+        $, $(template), 'template[if]');
     templateIfs.forEach(function(templateIf) {
       var attribs = {is: 'dom-if'};
       for (var key in templateIf.attribs) {
@@ -164,7 +582,7 @@ function upgradeHtml(filename) {
 
     // Upgrade <template repeat>
     var templateRepeats = recursivelyMatchInsideTemplates(
-        $, $(domModule), 'template[repeat]');
+        $, $(template), 'template[repeat]');
     templateRepeats.forEach(function(templateRepeat) {
       upgradeTemplateRepeat($, templateRepeat);
     });
@@ -173,7 +591,7 @@ function upgradeHtml(filename) {
 
     // Look for expressions in attributes
     // TODO(rictic): simplify the next few sections
-    var allNodes = recursivelyMatchInsideTemplates($, $(domModule), '*');
+    var allNodes = recursivelyMatchInsideTemplates($, $(template), '*');
     var anonymousComputedCounter = 1;
     allNodes.forEach(function(node) {
       if (!node.attribs) {
@@ -225,7 +643,10 @@ function upgradeHtml(filename) {
       }
     });
     // Look for expressions in text nodes
-    var allTextNodes = findAllTextNodes(domModule[0]);
+    var allTextNodes = [];
+    if (template) {
+      allTextNodes = findAllTextNodes(template);
+    }
     allTextNodes.forEach(function(textNode) {
       var matchFullExpression = textNode.data.match(/^\{\{(.+)\}\}$/);
       var matchPartialExpression = textNode.data.match(/\{\{(.+?)\}\}/);
@@ -270,7 +691,7 @@ function upgradeHtml(filename) {
 
     // <input value={{x}}> -> <input value={{x::input}}>
     var inputElems = recursivelyMatchInsideTemplates(
-        $, $(domModule), 'input, textarea');
+        $, $(template), 'input, textarea');
     inputElems.forEach(function(inputElem) {
       // At this point we're guaranteed that any bound expression is either a
       // function call or a simple property binding. We don't want to match
@@ -324,11 +745,17 @@ function upgradeHtml(filename) {
       return;
     }
     var newAttribs = {};
+    var attribsToUpgrade = elementMapping[elem.name].attributes || {};
     for (var attr in elem.attribs) {
-      var newAttr = elementMapping[elem.name].attributes[attr] || attr;
+      var newAttr = attribsToUpgrade[attr] || attr;
+      if (typeof(newAttr) != 'string') {
+        newAttr = newAttr.string;
+      }
       newAttribs[newAttr] = elem.attribs[attr];
     }
-    elem.name = elementMapping[elem.name].name;
+    if (elementMapping[elem.name].name) {
+      elem.name = elementMapping[elem.name].name;
+    }
     elem.attribs = newAttribs;
   });
 
@@ -338,15 +765,20 @@ function upgradeHtml(filename) {
     if (!match) {
       return;
     }
-    var dirname = match[1];
-    var filename = match[2];
-    if (!elementMapping[dirname] || !elementMapping[filename]) {
+    var dirName = match[1];
+    var fileName = match[2];
+    if (!elementMapping[dirName] || !elementMapping[fileName]) {
       return;
     }
+    var newDirname = elementMapping[fileName].dirName ||
+        elementMapping[dirName].dirName || elementMapping[fileName].name ||
+        dirName;
+    var newFilename = elementMapping[fileName].name || fileName;
+
     importElem.attribs.href =
         importElem.attribs.href.substring(0, match.index) +
-        elementMapping[dirname].name + '/' +
-        elementMapping[filename].name + '.html';
+        newDirname + '/' +
+        newFilename + '.html';
   });
 
 
@@ -366,18 +798,22 @@ function upgradeHtml(filename) {
 
 
   // TODOS:
-  // finish element_mapping.js
-  // If there's nothing to do for a file (html or js) then leave it byte for
-  //   byte the same.
+  // use all of the information encoded in element_mappin.js
+  // Add comments when moving domReady into ready?
+  // Ensure we're handling arguments correctly to observe functions in a 0.5
+  //   observe: {} block
   // Polymer.import -> Polymer.base.importHref
+  // handle binding on a <select> element's value.
   // handle mixins
   // Expressions with filters, i.e. {{x | f}}
+  // Handle <template bind='{{x}}'> and <template bind='{{x as y}}'>
+  // Handle <template autobind> -> <template is='dom-bind'> and add a big
+  //   warning.
   // remove curly braces from on-* event handler attributes
-  // convert attributes in template from camelCase to dash-case
   // detect layout attributes. Warn? Try to do the right thing?
   // replace polymer-ready with web-components-ready
   // warn on trackstart and trackend events
-  // Do we need to convert this.x = y to this._setX(y) for properties?
+  // When do we need to convert this.x = y to this._setX(y) for properties?
   // Handle external stylesheets (<link rel=stylesheet>)
   // elem.domMethod -> Polymer.dom(elem).domMethod:
   //   appendChild, insertBefore, removeChild, flush, childNodes, parentNode,
@@ -386,7 +822,12 @@ function upgradeHtml(filename) {
   //   querySelectorAll, getDistributedNodes, getDestinationInsertionPoints,
   //   setAttribute, removeAttribute, classList
   // Make a github page for polyup
-  // Polyup cli (command line flags, etc)
+  // Upgrade bower.json
+  //
+  // Aspirational:
+  // If there's nothing to do for a file (html or js) then leave it byte for
+  //   byte the same.
+
 }
 
 /**
@@ -421,9 +862,7 @@ function upgradeScriptElement($, docFilename, scriptElem, attrs, hostAttrs,
     try {
       scriptSource = fs.readFileSync(pathToScriptElem, 'utf-8');
     } catch(e) {
-      console.warn(
-          'Unable to read script source for ' + srcPath);
-      console.warn('Error:', e);
+      console.warn('Warning: unable to read script source for ' + srcPath);
       return;
     }
     return [
@@ -452,6 +891,11 @@ function upgradeScriptElement($, docFilename, scriptElem, attrs, hostAttrs,
 function recursivelyMatchInsideTemplates($, elem, matcher, results) {
   if (results == null) {
     results = [];
+  }
+  if (elem.is('template')) {
+    elem[0].children.forEach(function(child) {
+      recursivelyMatchInsideTemplates($, $(child), matcher, results);
+    });
   }
   elem.find(matcher).each(function(_ignored, matched) {
     results.push(matched);
@@ -567,7 +1011,17 @@ function insertHtmlCommentBefore($, elem, commentLines) {
 
 module.exports = upgradeHtml;
 
-},{"./element_mapping":3,"./upgrade_js":5,"escodegen":20,"fs":1,"lodash":50,"path":11,"string.prototype.endswith":72,"vulcanize/lib/pathresolver":75,"whacko":78}],5:[function(require,module,exports){
+},{"./element_mapping":3,"./upgrade_js":5,"escodegen":20,"fs":1,"lodash":50,"path":11,"string.prototype.endswith":51,"vulcanize/lib/pathresolver":54,"whacko":78}],5:[function(require,module,exports){
+/**
+ * @license
+ * Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
+ * This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+ * The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+ * The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+ * Code distributed by Google as part of the polymer project is also
+ * subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+ */
+
 'use strict';
 
 var espree = require('espree');
@@ -905,7 +1359,7 @@ function migrateAttributesToPropertiesBlock(declaration, attrs) {
         attrs[attrName] = attrs[attrName] || {name: attrName};
         attrs[attrName].observer = {
             type: 'Literal', value: observerFunctionName};
-        if (attrName.indexOf('\.') != -1 || attrName.indexOf('[') != -1) {
+        if (_.contains(attrName, '.') || _.contains(attrName, '[')) {
           attrs[attrName.observer.leadingComments] = [
             {type: 'Line', value: 'The semantics for observing properties ' +
                 'and arrays has changed.'},
@@ -11333,9 +11787,11 @@ function amdefine(module, requireFn) {
                 });
 
                 //Wait for next tick to call back the require call.
-                process.nextTick(function () {
-                    callback.apply(null, deps);
-                });
+                if (callback) {
+                    process.nextTick(function () {
+                        callback.apply(null, deps);
+                    });
+                }
             }
         }
 
@@ -11586,7 +12042,7 @@ module.exports={
   },
   "_id": "escodegen@1.6.1",
   "_shasum": "367de17d8510540d12bc6dcb8b3f918391265815",
-  "_from": "escodegen@",
+  "_from": "escodegen@>=1.6.1 <2.0.0",
   "_npmVersion": "2.0.0-alpha-5",
   "_npmUser": {
     "name": "constellation",
@@ -19240,7 +19696,7 @@ module.exports={
   "gitHead": "b60b597cfe4834aacd16c90179ce73e22705c132",
   "_id": "espree@2.0.3",
   "_shasum": "1fbdff60a410bd0d416b1ab3d6230d34b7a450e1",
-  "_from": "espree@",
+  "_from": "espree@>=2.0.3 <3.0.0",
   "_npmVersion": "1.4.28",
   "_npmUser": {
     "name": "nzakas",
@@ -19292,9 +19748,6 @@ module.exports={
 	}
 
 	function visit(node, parent, enter, leave) {
-		if (!node.type) {
-			return;
-		}
 		if (!node) {
 			return;
 		}if (enter) {
@@ -31578,6 +32031,812 @@ module.exports={
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{}],51:[function(require,module,exports){
+/*! http://mths.be/endswith v0.2.0 by @mathias */
+if (!String.prototype.endsWith) {
+	(function() {
+		'use strict'; // needed to support `apply`/`call` with `undefined`/`null`
+		var defineProperty = (function() {
+			// IE 8 only supports `Object.defineProperty` on DOM elements
+			try {
+				var object = {};
+				var $defineProperty = Object.defineProperty;
+				var result = $defineProperty(object, object, object) && $defineProperty;
+			} catch(error) {}
+			return result;
+		}());
+		var toString = {}.toString;
+		var endsWith = function(search) {
+			if (this == null) {
+				throw TypeError();
+			}
+			var string = String(this);
+			if (search && toString.call(search) == '[object RegExp]') {
+				throw TypeError();
+			}
+			var stringLength = string.length;
+			var searchString = String(search);
+			var searchLength = searchString.length;
+			var pos = stringLength;
+			if (arguments.length > 1) {
+				var position = arguments[1];
+				if (position !== undefined) {
+					// `ToInteger`
+					pos = position ? Number(position) : 0;
+					if (pos != pos) { // better `isNaN`
+						pos = 0;
+					}
+				}
+			}
+			var end = Math.min(Math.max(pos, 0), stringLength);
+			var start = end - searchLength;
+			if (start < 0) {
+				return false;
+			}
+			var index = -1;
+			while (++index < searchLength) {
+				if (string.charCodeAt(start + index) != searchString.charCodeAt(index)) {
+					return false;
+				}
+			}
+			return true;
+		};
+		if (defineProperty) {
+			defineProperty(String.prototype, 'endsWith', {
+				'value': endsWith,
+				'configurable': true,
+				'writable': true
+			});
+		} else {
+			String.prototype.endsWith = endsWith;
+		}
+	}());
+}
+
+},{}],52:[function(require,module,exports){
+/**
+ * @license
+ * Copyright (c) 2014 The Polymer Project Authors. All rights reserved.
+ * This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+ * The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+ * The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+ * Code distributed by Google as part of the polymer project is also
+ * subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+ */
+
+module.exports = {
+  EXTERNAL_URL: /^(?:https?:)?\/\//,
+  ABS_URL: /(^\/)|(^#)|(^[\w-\d]*:)/,
+  URL: /url\([^)]*\)/g,
+  URL_ATTR: ['href', 'src', 'action', 'style', 'assetpath'],
+  URL_TEMPLATE: '{{.*}}|\\[\\[.*\\]\\]',
+  OLD_POLYMER: 'This version of vulcanize is not compatible with Polymer < 0.8. Please use vulcanize 0.7.x.'
+};
+
+},{}],53:[function(require,module,exports){
+/**
+ * @license
+ * Copyright (c) 2014 The Polymer Project Authors. All rights reserved.
+ * This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+ * The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+ * The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+ * Code distributed by Google as part of the polymer project is also
+ * subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+ */
+
+// jshint node: true
+'use strict';
+
+var constants = require('./constants');
+var dom5 = require('dom5');
+var p = dom5.predicates;
+
+var urlAttrMatchers = constants.URL_ATTR.map(function(attr) {
+  return p.hasAttr(attr);
+});
+
+var urlAttrs = p.OR.apply(null, urlAttrMatchers);
+
+var jsMatcher = p.AND(
+  p.hasTagName('script'),
+  p.OR(
+    p.NOT(
+      p.hasAttr('type')
+    ),
+    p.hasAttrValue('type', 'text/javascript'),
+    p.hasAttrValue('type', 'application/javascript')
+  )
+);
+
+var externalStyle = p.AND(
+  p.hasTagName('link'),
+  p.hasAttrValue('rel', 'stylesheet')
+);
+  // polymer specific external stylesheet
+var polymerExternalStyle = p.AND(
+  p.hasTagName('link'),
+  p.hasAttrValue('rel', 'import'),
+  p.hasAttrValue('type', 'css')
+);
+
+var styleMatcher = p.AND(
+  p.hasTagName('style'),
+  p.OR(
+    p.NOT(
+      p.hasAttr('type')
+    ),
+    p.hasAttrValue('type', 'text/css')
+  )
+);
+
+module.exports = {
+  head: p.hasTagName('head'),
+  body: p.hasTagName('body'),
+  base: p.AND(
+    p.hasTagName('base'),
+    p.hasAttr('href')
+  ),
+  domModule: p.AND(
+    p.hasTagName('dom-module'),
+    p.hasAttr('id'),
+    p.NOT(
+      p.hasAttr('assetpath')
+    )
+  ),
+  meta: p.AND(
+    p.hasTagName('meta'),
+    p.hasAttr('charset')
+  ),
+  polymerElement: p.hasTagName('polymer-element'),
+  urlAttrs: urlAttrs,
+  JS: jsMatcher,
+  CSS: styleMatcher,
+  CSS_LINK: externalStyle,
+  POLY_CSS_LINK: polymerExternalStyle,
+  ALL_CSS_LINK: p.OR(externalStyle, polymerExternalStyle),
+  JS_SRC: p.AND(p.hasAttr('src'), jsMatcher),
+  JS_INLINE: p.AND(p.NOT(p.hasAttr('src')), jsMatcher),
+};
+
+},{"./constants":52,"dom5":55}],54:[function(require,module,exports){
+/**
+ * @license
+ * Copyright (c) 2014 The Polymer Project Authors. All rights reserved.
+ * This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+ * The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+ * The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+ * Code distributed by Google as part of the polymer project is also
+ * subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+ */
+
+// jshint node:true
+'use strict';
+
+var path = require('path');
+// use path.posix on Node > 0.12+, path-posix on 0.10
+var pathPosix = path.posix || require('path-posix');
+var url = require('url');
+var dom5 = require('dom5');
+var matchers = require('./matchers');
+var constants = require('./constants');
+
+var PathResolver = function PathResolver(abspath) {
+  if (abspath) {
+    this.abspath = abspath;
+  }
+};
+
+PathResolver.prototype = {
+  isTemplatedUrl: function isTemplatedUrl(href) {
+    return href.search(constants.URL_TEMPLATE) >= 0;
+  },
+
+  resolvePaths: function resolvePaths(importDoc, importUrl, mainDocUrl) {
+    // rewrite URLs in element attributes
+    var nodes = dom5.queryAll(importDoc, matchers.urlAttrs);
+    var attrValue;
+    for (var i = 0, node; i < nodes.length; i++) {
+      node = nodes[i];
+      for (var j = 0, attr; j < constants.URL_ATTR.length; j++) {
+        attr = constants.URL_ATTR[j];
+        attrValue = dom5.getAttribute(node, attr);
+        if (attrValue && !this.isTemplatedUrl(attrValue)) {
+          var relUrl;
+          if (attr === 'style') {
+            relUrl = this.rewriteURL(importUrl, mainDocUrl, attrValue);
+          } else {
+            relUrl = this.rewriteRelPath(importUrl, mainDocUrl, attrValue);
+            if (attr === 'assetpath' && relUrl.slice(-1) != '/') {
+              relUrl += '/';
+            }
+          }
+          dom5.setAttribute(node, attr, relUrl);
+        }
+      }
+    }
+    // rewrite URLs in stylesheets
+    var styleNodes = dom5.queryAll(importDoc, matchers.CSS);
+    for (i = 0, node; i < styleNodes.length; i++) {
+      node = styleNodes[i];
+      var styleText = dom5.getTextContent(node);
+      styleText = this.rewriteURL(importUrl, mainDocUrl, styleText);
+      dom5.setTextContent(node, styleText);
+    }
+    // add assetpath to dom-modules in importDoc
+    var domModules = dom5.queryAll(importDoc, matchers.domModule);
+    for (i = 0, node; i < domModules.length; i++) {
+      node = domModules[i];
+      var assetPathUrl = this.rewriteRelPath(importUrl, mainDocUrl, '');
+      assetPathUrl = pathPosix.dirname(assetPathUrl) + '/';
+      dom5.setAttribute(node, 'assetpath', assetPathUrl);
+    }
+  },
+
+  isAbsoluteUrl: function isAbsoluteUrl(href) {
+    return constants.ABS_URL.test(href);
+  },
+
+  rewriteRelPath: function rewriteRelPath(importUrl, mainDocUrl, relUrl) {
+    if (this.isAbsoluteUrl(relUrl)) {
+      return relUrl;
+    }
+    var absUrl = url.resolve(importUrl, relUrl);
+    if (this.abspath) {
+      return url.resolve('/', absUrl);
+    }
+    var parsedFrom = url.parse(mainDocUrl);
+    var parsedTo = url.parse(absUrl);
+    if (parsedFrom.protocol === parsedTo.protocol && parsedFrom.host === parsedTo.host) {
+      var pathname = pathPosix.relative(pathPosix.dirname(parsedFrom.pathname), parsedTo.pathname);
+      return url.format({
+        pathname: pathname,
+        search: parsedTo.search,
+        hash: parsedTo.hash
+      });
+    }
+    return absUrl;
+  },
+
+  rewriteURL: function rewriteURL(importUrl, mainDocUrl, cssText) {
+    return cssText.replace(constants.URL, function(match) {
+      var path = match.replace(/["']/g, "").slice(4, -1);
+      path = this.rewriteRelPath(importUrl, mainDocUrl, path);
+      return 'url("' + path + '")';
+    }.bind(this));
+  },
+
+  // remove effects of <base>
+  acid: function acid(doc, docUrl) {
+    var base = dom5.query(doc, matchers.base);
+    if (base) {
+      dom5.remove(base);
+      var baseUrl = dom5.getAttribute(base, 'href') + '/.index.html';
+      var docBaseUrl = url.resolve(docUrl, baseUrl);
+      this.resolvePaths(doc, docBaseUrl, docUrl);
+    }
+  }
+};
+
+module.exports = PathResolver;
+
+},{"./constants":52,"./matchers":53,"dom5":55,"path":11,"path-posix":77,"url":17}],55:[function(require,module,exports){
+/**
+ * @license
+ * Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
+ * This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+ * The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+ * The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+ * Code distributed by Google as part of the polymer project is also
+ * subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+ */
+
+// jshint node: true
+'use strict';
+
+function getAttributeIndex(element, name) {
+  if (!element.attrs) {
+    return -1;
+  }
+  var n = name.toLowerCase();
+  for (var i = 0; i < element.attrs.length; i++) {
+    if (element.attrs[i].name.toLowerCase() === n) {
+      return i;
+    }
+  }
+  return -1;
+}
+
+/**
+ * @returns {boolean} `true` iff [element] has the attribute [name], `false`
+ *   otherwise.
+ */
+function hasAttribute(element, name) {
+  return getAttributeIndex(element, name) !== -1;
+}
+
+/**
+ * @returns {string|null} The string value of attribute `name`, or `null`.
+ */
+function getAttribute(element, name) {
+  var i = getAttributeIndex(element, name);
+  if (i > -1) {
+    return element.attrs[i].value;
+  }
+  return null;
+}
+
+function setAttribute(element, name, value) {
+  var i = getAttributeIndex(element, name);
+  if (i > -1) {
+    element.attrs[i].value = value;
+  } else {
+    element.attrs.push({name: name, value: value});
+  }
+}
+
+function removeAttribute(element, name) {
+  var i = getAttributeIndex(element, name);
+  if (i > -1) {
+    element.attrs.splice(i, 1);
+  }
+}
+
+function hasTagName(name) {
+  var n = name.toLowerCase();
+  return function(node) {
+    if (!node.tagName) {
+      return false;
+    }
+    return node.tagName.toLowerCase() === n;
+  };
+}
+
+/**
+ * Returns true if `regex.match(tagName)` finds a match.
+ *
+ * This will use the lowercased tagName for comparison.
+ * 
+ * @param  {RegExp} regex
+ * @return {Boolean}
+ */
+function hasMatchingTagName(regex) {
+  return function(node) {
+    if (!node.tagName) {
+      return false;
+    }
+    return regex.test(node.tagName.toLowerCase());
+  };
+}
+
+function hasClass(name) {
+  return function(node) {
+    var attr = getAttribute(node, 'class');
+    if (!attr) {
+      return false;
+    }
+    return attr.split(' ').indexOf(name) > -1;
+  };
+}
+
+function collapseTextRange(parent, start, end) {
+  var text = '';
+  for (var i = start; i <= end; i++) {
+    text += getTextContent(parent.childNodes[i]);
+  }
+  parent.childNodes.splice(start, (end - start) + 1);
+  if (text) {
+    var tn = newTextNode(text);
+    tn.parentNode = parent;
+    parent.childNodes.splice(start, 0, tn);
+  }
+}
+
+/**
+ * Normalize the text inside an element
+ *
+ * Equivalent to `element.normalize()` in the browser
+ * See https://developer.mozilla.org/en-US/docs/Web/API/Node/normalize
+ */
+function normalize(node) {
+  if (!(isElement(node) || isDocument(node) || isDocumentFragment(node))) {
+    return;
+  }
+  var textRangeStart = -1;
+  for (var i = node.childNodes.length - 1, n; i >= 0; i--) {
+    n = node.childNodes[i];
+    if (isTextNode(n)) {
+      if (textRangeStart == -1) {
+        textRangeStart = i;
+      }
+      if (i === 0) {
+        // collapse leading text nodes
+        collapseTextRange(node, 0, textRangeStart);
+      }
+    } else {
+      // recurse
+      normalize(n);
+      // collapse the range after this node
+      if (textRangeStart > -1) {
+        collapseTextRange(node, i + 1, textRangeStart);
+        textRangeStart = -1;
+      }
+    }
+  }
+}
+
+/**
+ * Return the text value of a node or element
+ *
+ * Equivalent to `node.textContent` in the browser
+ */
+function getTextContent(node) {
+  if (isCommentNode(node)) {
+    return node.data;
+  }
+  if (isTextNode(node)) {
+    return node.value;
+  }
+  var subtree = nodeWalkAll(node, isTextNode);
+  return subtree.map(getTextContent).join('');
+}
+
+/**
+ * Set the text value of a node or element
+ *
+ * Equivalent to `node.textContent = value` in the browser
+ */
+function setTextContent(node, value) {
+  if (isCommentNode(node)) {
+    node.data = value;
+  } else if (isTextNode(node)) {
+    node.value = value;
+  } else {
+    var tn = newTextNode(value);
+    tn.parentNode = node;
+    node.childNodes = [tn];
+  }
+}
+
+/**
+ * Match the text inside an element, textnode, or comment
+ *
+ * Note: nodeWalkAll with hasTextValue may return an textnode and its parent if
+ * the textnode is the only child in that parent.
+ */
+function hasTextValue(value) {
+  return function(node) {
+    return getTextContent(node) === value;
+  };
+}
+
+/**
+ * OR an array of predicates
+ */
+function OR(/* ...rules */) {
+  var rules = new Array(arguments.length);
+  for (var i = 0; i < arguments.length; i++) {
+    rules[i] = arguments[i];
+  }
+  return function(node) {
+    for (var i = 0; i < rules.length; i++) {
+      if (rules[i](node)) {
+        return true;
+      }
+    }
+    return false;
+  };
+}
+
+/**
+ * AND an array of predicates
+ */
+function AND(/* ...rules */) {
+  var rules = new Array(arguments.length);
+  for (var i = 0; i < arguments.length; i++) {
+    rules[i] = arguments[i];
+  }
+  return function(node) {
+    for (var i = 0; i < rules.length; i++) {
+      if (!rules[i](node)) {
+        return false;
+      }
+    }
+    return true;
+  };
+}
+
+/**
+ * negate an individual predicate, or a group with AND or OR
+ */
+function NOT(predicateFn) {
+  return function(node) {
+    return !predicateFn(node);
+  };
+}
+
+/**
+ * Returns a predicate that matches any node with a parent matching `predicateFn`.
+ */
+function parentMatches(predicateFn) {
+  return function(node) {
+    var parent = node.parentNode;
+    while(parent !== undefined) {
+      if (predicateFn(parent)) {
+        return true;
+      }
+      parent = parent.parentNode;
+    }
+    return false;
+  };
+}
+
+function hasAttr(attr) {
+  return function(node) {
+    return getAttributeIndex(node, attr) > -1;
+  };
+}
+
+function hasAttrValue(attr, value) {
+  return function(node) {
+    return getAttribute(node, attr) === value;
+  };
+}
+
+function isDocument(node) {
+  return node.nodeName === '#document';
+}
+
+function isDocumentFragment(node) {
+  return node.nodeName === '#document-fragment';
+}
+
+function isElement(node) {
+  return node.nodeName === node.tagName;
+}
+
+function isTextNode(node) {
+  return node.nodeName === '#text';
+}
+
+function isCommentNode(node) {
+  return node.nodeName === '#comment';
+}
+
+/**
+ * Applies `mapfn` to `node` and the tree below `node`, returning a flattened
+ * list of results.
+ * @return {Array}
+ */
+function treeMap(node, mapfn) {
+  var results = [];
+  nodeWalk(node, function(node){
+    results = results.concat(mapfn(node));
+    return false;
+  });
+  return results;
+}
+
+/**
+ * Walk the tree down from `node`, applying the `predicate` function.
+ * Return the first node that matches the given predicate.
+ *
+ * @returns {Node} `null` if no node matches, parse5 node object if a node
+ * matches
+ */
+function nodeWalk(node, predicate) {
+  if (predicate(node)) {
+    return node;
+  }
+  var match = null;
+  if (node.childNodes) {
+    for (var i = 0; i < node.childNodes.length; i++) {
+      match = nodeWalk(node.childNodes[i], predicate);
+      if (match) {
+        break;
+      }
+    }
+  }
+  return match;
+}
+
+/**
+ * Walk the tree down from `node`, applying the `predicate` function.
+ * All nodes matching the predicate function from `node` to leaves will be
+ * returned.
+ *
+ * @returns {Array[Node]}
+ */
+function nodeWalkAll(node, predicate, matches) {
+  if (!matches) {
+    matches = [];
+  }
+  if (predicate(node)) {
+    matches.push(node);
+  }
+  if (node.childNodes) {
+    for (var i = 0; i < node.childNodes.length; i++) {
+      nodeWalkAll(node.childNodes[i], predicate, matches);
+    }
+  }
+  return matches;
+}
+
+function _reverseNodeWalkAll(node, predicate, matches) {
+  if (!matches) {
+    matches = [];
+  }
+  if (node.childNodes) {
+    for (var i = node.childNodes.length - 1; i >= 0; i--) {
+      nodeWalkAll(node.childNodes[i], predicate, matches);
+    }
+  }
+  if (predicate(node)) {
+    matches.push(node);
+  }
+  return matches;
+}
+
+/**
+ * Equivalent to `nodeWalkAll`, but only returns nodes that are either 
+ * ancestors or earlier cousins/siblings in the document.
+ *
+ * Nodes are returned in reverse document order, starting from `node`.
+ */
+function nodeWalkAllPrior(node, predicate, matches) {
+  if (!matches) {
+    matches = [];
+  }
+  if (predicate(node)) {
+    matches.push(node);
+  }
+  // Search our earlier siblings and their descendents.
+  var parent = node.parentNode;
+  if (parent) {
+    var idx = parent.childNodes.indexOf(node);
+    var siblings = parent.childNodes.slice(0, idx);
+    for (var i = siblings.length-1; i >= 0; i--) {
+      _reverseNodeWalkAll(siblings[i], predicate, matches);
+    }
+    nodeWalkAllPrior(parent, predicate, matches);
+  }
+  return matches;
+}
+
+/**
+ * Equivalent to `nodeWalk`, but only matches elements
+ *
+ * @returns {Element}
+ */
+function query(node, predicate) {
+  var elementPredicate = AND(isElement, predicate);
+  return nodeWalk(node, elementPredicate);
+}
+
+/**
+ * Equivalent to `nodeWalkAll`, but only matches elements
+ *
+ * @return {Array[Element]}
+ */
+function queryAll(node, predicate, matches) {
+  var elementPredicate = AND(isElement, predicate);
+  return nodeWalkAll(node, elementPredicate, matches);
+}
+
+function newTextNode(value) {
+  return {
+    nodeName: '#text',
+    value: value,
+    parentNode: null
+  };
+}
+
+function newCommentNode(comment) {
+  return {
+    nodeName: '#comment',
+    data: comment,
+    parentNode: null
+  };
+}
+
+function newElement(tagName, namespace) {
+  return {
+    nodeName: tagName,
+    tagName: tagName,
+    childNodes: [],
+    namespaceURI: namespace || 'http://www.w3.org/1999/xhtml',
+    attrs: [],
+    parentNode: null,
+  };
+}
+
+function replace(oldNode, newNode) {
+  insertBefore(oldNode.parentNode, oldNode, newNode);
+  remove(oldNode);
+}
+
+function remove(node) {
+  var parent = node.parentNode;
+  if (parent) {
+    var idx = parent.childNodes.indexOf(node);
+    parent.childNodes.splice(idx, 1);
+  }
+  node.parentNode = null;
+}
+
+function insertBefore(parent, oldNode, newNode) {
+  remove(newNode);
+  var idx = parent.childNodes.indexOf(oldNode);
+  parent.childNodes.splice(idx, 0, newNode);
+  newNode.parentNode = parent;
+}
+
+function append(parent, node) {
+  remove(node);
+  parent.childNodes.push(node);
+  node.parentNode = parent;
+}
+
+var parse5 = require('parse5');
+function parse(text, options) {
+  var parser = new parse5.Parser(parse5.TreeAdapters.default, options);
+  return parser.parse(text);
+}
+
+function parseFragment(text) {
+  var parser = new parse5.Parser();
+  return parser.parseFragment(text);
+}
+
+function serialize(ast) {
+  var serializer = new parse5.Serializer();
+  return serializer.serialize(ast);
+}
+
+module.exports = {
+  getAttribute: getAttribute,
+  hasAttribute: hasAttribute,
+  setAttribute: setAttribute,
+  removeAttribute: removeAttribute,
+  getTextContent: getTextContent,
+  setTextContent: setTextContent,
+  remove: remove,
+  replace: replace,
+  append: append,
+  insertBefore: insertBefore,
+  normalize: normalize,
+  isDocument: isDocument,
+  isDocumentFragment: isDocumentFragment,
+  isElement: isElement,
+  isTextNode: isTextNode,
+  isCommentNode: isCommentNode,
+  query: query,
+  queryAll: queryAll,
+  nodeWalk: nodeWalk,
+  nodeWalkAll: nodeWalkAll,
+  nodeWalkAllPrior: nodeWalkAllPrior,
+  treeMap: treeMap,
+  predicates: {
+    hasClass: hasClass,
+    hasAttr: hasAttr,
+    hasAttrValue: hasAttrValue,
+    hasMatchingTagName: hasMatchingTagName,
+    hasTagName: hasTagName,
+    hasTextValue: hasTextValue,
+    AND: AND,
+    OR: OR,
+    NOT: NOT,
+    parentMatches: parentMatches
+  },
+  constructors: {
+    text: newTextNode,
+    comment: newCommentNode,
+    element: newElement
+  },
+  parse: parse,
+  parseFragment: parseFragment,
+  serialize: serialize
+};
+
+},{"parse5":56}],56:[function(require,module,exports){
 'use strict';
 
 exports.Parser = require('./lib/tree_construction/parser');
@@ -31591,7 +32850,7 @@ exports.TreeAdapters = {
     htmlparser2: require('./lib/tree_adapters/htmlparser2')
 };
 
-},{"./lib/jsdom/jsdom_parser":57,"./lib/serialization/serializer":59,"./lib/simple_api/simple_api_parser":60,"./lib/tree_adapters/default":66,"./lib/tree_adapters/htmlparser2":67,"./lib/tree_construction/parser":71}],52:[function(require,module,exports){
+},{"./lib/jsdom/jsdom_parser":62,"./lib/serialization/serializer":64,"./lib/simple_api/simple_api_parser":65,"./lib/tree_adapters/default":71,"./lib/tree_adapters/htmlparser2":72,"./lib/tree_construction/parser":76}],57:[function(require,module,exports){
 'use strict';
 
 //Const
@@ -31727,7 +32986,7 @@ exports.serializeContent = function (name, publicId, systemId) {
     return str;
 };
 
-},{}],53:[function(require,module,exports){
+},{}],58:[function(require,module,exports){
 'use strict';
 
 var Tokenizer = require('../tokenization/tokenizer'),
@@ -31986,7 +33245,7 @@ exports.isHtmlIntegrationPoint = function (tn, ns, attrs) {
     return ns === NS.SVG && (tn === $.FOREIGN_OBJECT || tn === $.DESC || tn === $.TITLE);
 };
 
-},{"../tokenization/tokenizer":65,"./html":54}],54:[function(require,module,exports){
+},{"../tokenization/tokenizer":70,"./html":59}],59:[function(require,module,exports){
 'use strict';
 
 var NS = exports.NAMESPACES = {
@@ -32256,7 +33515,7 @@ SPECIAL_ELEMENTS[NS.SVG][$.TITLE] = true;
 SPECIAL_ELEMENTS[NS.SVG][$.FOREIGN_OBJECT] = true;
 SPECIAL_ELEMENTS[NS.SVG][$.DESC] = true;
 
-},{}],55:[function(require,module,exports){
+},{}],60:[function(require,module,exports){
 'use strict';
 
 exports.REPLACEMENT_CHARACTER = '\uFFFD';
@@ -32306,7 +33565,7 @@ exports.CODE_POINT_SEQUENCES = {
     SYSTEM_STRING: [0x53, 0x59, 0x53, 0x54, 0x45, 0x4D] //SYSTEM
 };
 
-},{}],56:[function(require,module,exports){
+},{}],61:[function(require,module,exports){
 'use strict';
 
 exports.mergeOptions = function (defaults, options) {
@@ -32321,7 +33580,7 @@ exports.mergeOptions = function (defaults, options) {
     }, {});
 };
 
-},{}],57:[function(require,module,exports){
+},{}],62:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -32363,7 +33622,7 @@ exports.parseInnerHtml = function (innerHtml, contextElement, treeAdapter) {
     return parser.parseFragment(innerHtml, contextElement);
 };
 }).call(this,require('_process'))
-},{"../tree_construction/parser":71,"./parsing_unit":58,"_process":12}],58:[function(require,module,exports){
+},{"../tree_construction/parser":76,"./parsing_unit":63,"_process":12}],63:[function(require,module,exports){
 'use strict';
 
 var ParsingUnit = module.exports = function (parser) {
@@ -32418,7 +33677,7 @@ ParsingUnit.prototype.done = function (callback) {
     return this;
 };
 
-},{}],59:[function(require,module,exports){
+},{}],64:[function(require,module,exports){
 'use strict';
 
 var DefaultTreeAdapter = require('../tree_adapters/default'),
@@ -32599,7 +33858,7 @@ Serializer.prototype._serializeDocumentTypeNode = function (node) {
     this.html += '<' + Doctype.serializeContent(name, publicId, systemId) + '>';
 };
 
-},{"../common/doctype":52,"../common/html":54,"../common/utils":56,"../tree_adapters/default":66}],60:[function(require,module,exports){
+},{"../common/doctype":57,"../common/html":59,"../common/utils":61,"../tree_adapters/default":71}],65:[function(require,module,exports){
 'use strict';
 
 var Tokenizer = require('../tokenization/tokenizer'),
@@ -32708,7 +33967,7 @@ SimpleApiParser.prototype._emitPendingText = function () {
     }
 };
 
-},{"../common/utils":56,"../tokenization/tokenizer":65,"./tokenizer_proxy":61}],61:[function(require,module,exports){
+},{"../common/utils":61,"../tokenization/tokenizer":70,"./tokenizer_proxy":66}],66:[function(require,module,exports){
 'use strict';
 
 var Tokenizer = require('../tokenization/tokenizer'),
@@ -32832,7 +34091,7 @@ TokenizerProxy.prototype._handleEndTagToken = function (token) {
         this._leaveCurrentNamespace();
 };
 
-},{"../common/foreign_content":53,"../common/html":54,"../common/unicode":55,"../tokenization/tokenizer":65}],62:[function(require,module,exports){
+},{"../common/foreign_content":58,"../common/html":59,"../common/unicode":60,"../tokenization/tokenizer":70}],67:[function(require,module,exports){
 'use strict';
 
 exports.assign = function (tokenizer) {
@@ -32914,7 +34173,7 @@ exports.assign = function (tokenizer) {
         });
 };
 
-},{}],63:[function(require,module,exports){
+},{}],68:[function(require,module,exports){
 'use strict';
 
 //NOTE: this file contains auto generated trie structure that is used for named entity references consumption
@@ -32974,7 +34233,7 @@ module.exports = {
     0x5A: {l: {0x61: {l: {0x63: {l: {0x75: {l: {0x74: {l: {0x65: {l: {0x3B: {c: [377]}}}}}}}}}}}, 0x63: {l: {0x61: {l: {0x72: {l: {0x6F: {l: {0x6E: {l: {0x3B: {c: [381]}}}}}}}}}, 0x79: {l: {0x3B: {c: [1047]}}}}}, 0x64: {l: {0x6F: {l: {0x74: {l: {0x3B: {c: [379]}}}}}}}, 0x65: {l: {0x72: {l: {0x6F: {l: {0x57: {l: {0x69: {l: {0x64: {l: {0x74: {l: {0x68: {l: {0x53: {l: {0x70: {l: {0x61: {l: {0x63: {l: {0x65: {l: {0x3B: {c: [8203]}}}}}}}}}}}}}}}}}}}}}}}}}, 0x74: {l: {0x61: {l: {0x3B: {c: [918]}}}}}}}, 0x66: {l: {0x72: {l: {0x3B: {c: [8488]}}}}}, 0x48: {l: {0x63: {l: {0x79: {l: {0x3B: {c: [1046]}}}}}}}, 0x6F: {l: {0x70: {l: {0x66: {l: {0x3B: {c: [8484]}}}}}}}, 0x73: {l: {0x63: {l: {0x72: {l: {0x3B: {c: [119989]}}}}}}}}},
     0x7A: {l: {0x61: {l: {0x63: {l: {0x75: {l: {0x74: {l: {0x65: {l: {0x3B: {c: [378]}}}}}}}}}}}, 0x63: {l: {0x61: {l: {0x72: {l: {0x6F: {l: {0x6E: {l: {0x3B: {c: [382]}}}}}}}}}, 0x79: {l: {0x3B: {c: [1079]}}}}}, 0x64: {l: {0x6F: {l: {0x74: {l: {0x3B: {c: [380]}}}}}}}, 0x65: {l: {0x65: {l: {0x74: {l: {0x72: {l: {0x66: {l: {0x3B: {c: [8488]}}}}}}}}}, 0x74: {l: {0x61: {l: {0x3B: {c: [950]}}}}}}}, 0x66: {l: {0x72: {l: {0x3B: {c: [120119]}}}}}, 0x68: {l: {0x63: {l: {0x79: {l: {0x3B: {c: [1078]}}}}}}}, 0x69: {l: {0x67: {l: {0x72: {l: {0x61: {l: {0x72: {l: {0x72: {l: {0x3B: {c: [8669]}}}}}}}}}}}}}, 0x6F: {l: {0x70: {l: {0x66: {l: {0x3B: {c: [120171]}}}}}}}, 0x73: {l: {0x63: {l: {0x72: {l: {0x3B: {c: [120015]}}}}}}}, 0x77: {l: {0x6A: {l: {0x3B: {c: [8205]}}}, 0x6E: {l: {0x6A: {l: {0x3B: {c: [8204]}}}}}}}}}
 };
-},{}],64:[function(require,module,exports){
+},{}],69:[function(require,module,exports){
 'use strict';
 
 var UNICODE = require('../common/unicode');
@@ -33091,7 +34350,7 @@ Preprocessor.prototype.retreat = function () {
     this.pos--;
 };
 
-},{"../common/unicode":55}],65:[function(require,module,exports){
+},{"../common/unicode":60}],70:[function(require,module,exports){
 'use strict';
 
 var Preprocessor = require('./preprocessor'),
@@ -35410,7 +36669,7 @@ _[CDATA_SECTION_STATE] = function cdataSectionState(cp) {
     }
 };
 
-},{"../common/unicode":55,"./location_info_mixin":62,"./named_entity_trie":63,"./preprocessor":64}],66:[function(require,module,exports){
+},{"../common/unicode":60,"./location_info_mixin":67,"./named_entity_trie":68,"./preprocessor":69}],71:[function(require,module,exports){
 'use strict';
 
 //Node construction
@@ -35612,7 +36871,7 @@ exports.isElementNode = function (node) {
     return !!node.tagName;
 };
 
-},{}],67:[function(require,module,exports){
+},{}],72:[function(require,module,exports){
 'use strict';
 
 var Doctype = require('../common/doctype');
@@ -35931,7 +37190,7 @@ exports.isElementNode = function (node) {
     return !!node.attribs;
 };
 
-},{"../common/doctype":52}],68:[function(require,module,exports){
+},{"../common/doctype":57}],73:[function(require,module,exports){
 'use strict';
 
 //Const
@@ -36100,7 +37359,7 @@ FormattingElementList.prototype.getElementEntry = function (element) {
     return null;
 };
 
-},{}],69:[function(require,module,exports){
+},{}],74:[function(require,module,exports){
 'use strict';
 
 var OpenElementStack = require('./open_element_stack'),
@@ -36269,7 +37528,7 @@ exports.assign = function (parser) {
 };
 
 
-},{"../common/html":54,"../tokenization/tokenizer":65,"./open_element_stack":70}],70:[function(require,module,exports){
+},{"../common/html":59,"../tokenization/tokenizer":70,"./open_element_stack":75}],75:[function(require,module,exports){
 'use strict';
 
 var HTML = require('../common/html');
@@ -36650,7 +37909,7 @@ OpenElementStack.prototype.generateImpliedEndTagsWithExclusion = function (exclu
         this.pop();
 };
 
-},{"../common/html":54}],71:[function(require,module,exports){
+},{"../common/html":59}],76:[function(require,module,exports){
 'use strict';
 
 var Tokenizer = require('../tokenization/tokenizer'),
@@ -39479,813 +40738,7 @@ function endTagInForeignContent(p, token) {
     }
 }
 
-},{"../common/doctype":52,"../common/foreign_content":53,"../common/html":54,"../common/unicode":55,"../common/utils":56,"../tokenization/tokenizer":65,"../tree_adapters/default":66,"./formatting_element_list":68,"./location_info_mixin":69,"./open_element_stack":70}],72:[function(require,module,exports){
-/*! http://mths.be/endswith v0.2.0 by @mathias */
-if (!String.prototype.endsWith) {
-	(function() {
-		'use strict'; // needed to support `apply`/`call` with `undefined`/`null`
-		var defineProperty = (function() {
-			// IE 8 only supports `Object.defineProperty` on DOM elements
-			try {
-				var object = {};
-				var $defineProperty = Object.defineProperty;
-				var result = $defineProperty(object, object, object) && $defineProperty;
-			} catch(error) {}
-			return result;
-		}());
-		var toString = {}.toString;
-		var endsWith = function(search) {
-			if (this == null) {
-				throw TypeError();
-			}
-			var string = String(this);
-			if (search && toString.call(search) == '[object RegExp]') {
-				throw TypeError();
-			}
-			var stringLength = string.length;
-			var searchString = String(search);
-			var searchLength = searchString.length;
-			var pos = stringLength;
-			if (arguments.length > 1) {
-				var position = arguments[1];
-				if (position !== undefined) {
-					// `ToInteger`
-					pos = position ? Number(position) : 0;
-					if (pos != pos) { // better `isNaN`
-						pos = 0;
-					}
-				}
-			}
-			var end = Math.min(Math.max(pos, 0), stringLength);
-			var start = end - searchLength;
-			if (start < 0) {
-				return false;
-			}
-			var index = -1;
-			while (++index < searchLength) {
-				if (string.charCodeAt(start + index) != searchString.charCodeAt(index)) {
-					return false;
-				}
-			}
-			return true;
-		};
-		if (defineProperty) {
-			defineProperty(String.prototype, 'endsWith', {
-				'value': endsWith,
-				'configurable': true,
-				'writable': true
-			});
-		} else {
-			String.prototype.endsWith = endsWith;
-		}
-	}());
-}
-
-},{}],73:[function(require,module,exports){
-/**
- * @license
- * Copyright (c) 2014 The Polymer Project Authors. All rights reserved.
- * This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
- * The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
- * The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
- * Code distributed by Google as part of the polymer project is also
- * subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
- */
-
-module.exports = {
-  EXTERNAL_URL: /^(?:https?:)?\/\//,
-  ABS_URL: /(^\/)|(^#)|(^[\w-\d]*:)/,
-  URL: /url\([^)]*\)/g,
-  URL_ATTR: ['href', 'src', 'action', 'style', 'assetpath'],
-  URL_TEMPLATE: '{{.*}}|\\[\\[.*\\]\\]',
-  OLD_POLYMER: 'This version of vulcanize is not compatible with Polymer < 0.8. Please use vulcanize 0.7.x.'
-};
-
-},{}],74:[function(require,module,exports){
-/**
- * @license
- * Copyright (c) 2014 The Polymer Project Authors. All rights reserved.
- * This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
- * The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
- * The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
- * Code distributed by Google as part of the polymer project is also
- * subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
- */
-
-// jshint node: true
-'use strict';
-
-var constants = require('./constants');
-var dom5 = require('dom5');
-var p = dom5.predicates;
-
-var urlAttrMatchers = constants.URL_ATTR.map(function(attr) {
-  return p.hasAttr(attr);
-});
-
-var urlAttrs = p.OR.apply(null, urlAttrMatchers);
-
-var jsMatcher = p.AND(
-  p.hasTagName('script'),
-  p.OR(
-    p.NOT(
-      p.hasAttr('type')
-    ),
-    p.hasAttrValue('type', 'text/javascript'),
-    p.hasAttrValue('type', 'application/javascript')
-  )
-);
-
-var externalStyle = p.AND(
-  p.hasTagName('link'),
-  p.hasAttrValue('rel', 'stylesheet')
-);
-  // polymer specific external stylesheet
-var polymerExternalStyle = p.AND(
-  p.hasTagName('link'),
-  p.hasAttrValue('rel', 'import'),
-  p.hasAttrValue('type', 'css')
-);
-
-var styleMatcher = p.AND(
-  p.hasTagName('style'),
-  p.OR(
-    p.NOT(
-      p.hasAttr('type')
-    ),
-    p.hasAttrValue('type', 'text/css')
-  )
-);
-
-module.exports = {
-  head: p.hasTagName('head'),
-  body: p.hasTagName('body'),
-  base: p.AND(
-    p.hasTagName('base'),
-    p.hasAttr('href')
-  ),
-  domModule: p.AND(
-    p.hasTagName('dom-module'),
-    p.hasAttr('id'),
-    p.NOT(
-      p.hasAttr('assetpath')
-    )
-  ),
-  meta: p.AND(
-    p.hasTagName('meta'),
-    p.hasAttr('charset')
-  ),
-  polymerElement: p.hasTagName('polymer-element'),
-  urlAttrs: urlAttrs,
-  JS: jsMatcher,
-  CSS: styleMatcher,
-  CSS_LINK: externalStyle,
-  POLY_CSS_LINK: polymerExternalStyle,
-  ALL_CSS_LINK: p.OR(externalStyle, polymerExternalStyle),
-  JS_SRC: p.AND(p.hasAttr('src'), jsMatcher),
-  JS_INLINE: p.AND(p.NOT(p.hasAttr('src')), jsMatcher),
-};
-
-},{"./constants":73,"dom5":76}],75:[function(require,module,exports){
-/**
- * @license
- * Copyright (c) 2014 The Polymer Project Authors. All rights reserved.
- * This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
- * The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
- * The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
- * Code distributed by Google as part of the polymer project is also
- * subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
- */
-
-// jshint node:true
-'use strict';
-
-var path = require('path');
-// use path.posix on Node > 0.12+, path-posix on 0.10
-var pathPosix = path.posix || require('path-posix');
-var url = require('url');
-var dom5 = require('dom5');
-var matchers = require('./matchers');
-var constants = require('./constants');
-
-var PathResolver = function PathResolver(abspath) {
-  if (abspath) {
-    this.abspath = abspath;
-  }
-};
-
-PathResolver.prototype = {
-  isTemplatedUrl: function isTemplatedUrl(href) {
-    return href.search(constants.URL_TEMPLATE) >= 0;
-  },
-
-  resolvePaths: function resolvePaths(importDoc, importUrl, mainDocUrl) {
-    // rewrite URLs in element attributes
-    var nodes = dom5.queryAll(importDoc, matchers.urlAttrs);
-    var attrValue;
-    for (var i = 0, node; i < nodes.length; i++) {
-      node = nodes[i];
-      for (var j = 0, attr; j < constants.URL_ATTR.length; j++) {
-        attr = constants.URL_ATTR[j];
-        attrValue = dom5.getAttribute(node, attr);
-        if (attrValue && !this.isTemplatedUrl(attrValue)) {
-          var relUrl;
-          if (attr === 'style') {
-            relUrl = this.rewriteURL(importUrl, mainDocUrl, attrValue);
-          } else {
-            relUrl = this.rewriteRelPath(importUrl, mainDocUrl, attrValue);
-            if (attr === 'assetpath' && relUrl.slice(-1) != '/') {
-              relUrl += '/';
-            }
-          }
-          dom5.setAttribute(node, attr, relUrl);
-        }
-      }
-    }
-    // rewrite URLs in stylesheets
-    var styleNodes = dom5.queryAll(importDoc, matchers.CSS);
-    for (i = 0, node; i < styleNodes.length; i++) {
-      node = styleNodes[i];
-      var styleText = dom5.getTextContent(node);
-      styleText = this.rewriteURL(importUrl, mainDocUrl, styleText);
-      dom5.setTextContent(node, styleText);
-    }
-    // add assetpath to dom-modules in importDoc
-    var domModules = dom5.queryAll(importDoc, matchers.domModule);
-    for (i = 0, node; i < domModules.length; i++) {
-      node = domModules[i];
-      var assetPathUrl = this.rewriteRelPath(importUrl, mainDocUrl, '');
-      assetPathUrl = pathPosix.dirname(assetPathUrl) + '/';
-      dom5.setAttribute(node, 'assetpath', assetPathUrl);
-    }
-  },
-
-  isAbsoluteUrl: function isAbsoluteUrl(href) {
-    return constants.ABS_URL.test(href);
-  },
-
-  rewriteRelPath: function rewriteRelPath(importUrl, mainDocUrl, relUrl) {
-    if (this.isAbsoluteUrl(relUrl)) {
-      return relUrl;
-    }
-    var absUrl = url.resolve(importUrl, relUrl);
-    if (this.abspath) {
-      return url.resolve('/', absUrl);
-    }
-    var parsedFrom = url.parse(mainDocUrl);
-    var parsedTo = url.parse(absUrl);
-    if (parsedFrom.protocol === parsedTo.protocol && parsedFrom.host === parsedTo.host) {
-      var pathname = pathPosix.relative(pathPosix.dirname(parsedFrom.pathname), parsedTo.pathname);
-      return url.format({
-        pathname: pathname,
-        search: parsedTo.search,
-        hash: parsedTo.hash
-      });
-    }
-    return absUrl;
-  },
-
-  rewriteURL: function rewriteURL(importUrl, mainDocUrl, cssText) {
-    return cssText.replace(constants.URL, function(match) {
-      var path = match.replace(/["']/g, "").slice(4, -1);
-      path = this.rewriteRelPath(importUrl, mainDocUrl, path);
-      return 'url("' + path + '")';
-    }.bind(this));
-  },
-
-  // remove effects of <base>
-  acid: function acid(doc, docUrl) {
-    var base = dom5.query(doc, matchers.base);
-    if (base) {
-      dom5.remove(base);
-      var baseUrl = dom5.getAttribute(base, 'href') + '/.index.html';
-      var docBaseUrl = url.resolve(docUrl, baseUrl);
-      this.resolvePaths(doc, docBaseUrl, docUrl);
-    }
-  }
-};
-
-module.exports = PathResolver;
-
-},{"./constants":73,"./matchers":74,"dom5":76,"path":11,"path-posix":77,"url":17}],76:[function(require,module,exports){
-/**
- * @license
- * Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
- * This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
- * The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
- * The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
- * Code distributed by Google as part of the polymer project is also
- * subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
- */
-
-// jshint node: true
-'use strict';
-
-function getAttributeIndex(element, name) {
-  if (!element.attrs) {
-    return -1;
-  }
-  var n = name.toLowerCase();
-  for (var i = 0; i < element.attrs.length; i++) {
-    if (element.attrs[i].name.toLowerCase() === n) {
-      return i;
-    }
-  }
-  return -1;
-}
-
-/**
- * @returns {boolean} `true` iff [element] has the attribute [name], `false`
- *   otherwise.
- */
-function hasAttribute(element, name) {
-  return getAttributeIndex(element, name) !== -1;
-}
-
-/**
- * @returns {string|null} The string value of attribute `name`, or `null`.
- */
-function getAttribute(element, name) {
-  var i = getAttributeIndex(element, name);
-  if (i > -1) {
-    return element.attrs[i].value;
-  }
-  return null;
-}
-
-function setAttribute(element, name, value) {
-  var i = getAttributeIndex(element, name);
-  if (i > -1) {
-    element.attrs[i].value = value;
-  } else {
-    element.attrs.push({name: name, value: value});
-  }
-}
-
-function removeAttribute(element, name) {
-  var i = getAttributeIndex(element, name);
-  if (i > -1) {
-    element.attrs.splice(i, 1);
-  }
-}
-
-function hasTagName(name) {
-  var n = name.toLowerCase();
-  return function(node) {
-    if (!node.tagName) {
-      return false;
-    }
-    return node.tagName.toLowerCase() === n;
-  };
-}
-
-/**
- * Returns true if `regex.match(tagName)` finds a match.
- *
- * This will use the lowercased tagName for comparison.
- * 
- * @param  {RegExp} regex
- * @return {Boolean}
- */
-function hasMatchingTagName(regex) {
-  return function(node) {
-    if (!node.tagName) {
-      return false;
-    }
-    return regex.test(node.tagName.toLowerCase());
-  };
-}
-
-function hasClass(name) {
-  return function(node) {
-    var attr = getAttribute(node, 'class');
-    if (!attr) {
-      return false;
-    }
-    return attr.split(' ').indexOf(name) > -1;
-  };
-}
-
-function collapseTextRange(parent, start, end) {
-  var text = '';
-  for (var i = start; i <= end; i++) {
-    text += getTextContent(parent.childNodes[i]);
-  }
-  parent.childNodes.splice(start, (end - start) + 1);
-  if (text) {
-    var tn = newTextNode(text);
-    tn.parentNode = parent;
-    parent.childNodes.splice(start, 0, tn);
-  }
-}
-
-/**
- * Normalize the text inside an element
- *
- * Equivalent to `element.normalize()` in the browser
- * See https://developer.mozilla.org/en-US/docs/Web/API/Node/normalize
- */
-function normalize(node) {
-  if (!(isElement(node) || isDocument(node) || isDocumentFragment(node))) {
-    return;
-  }
-  var textRangeStart = -1;
-  for (var i = node.childNodes.length - 1, n; i >= 0; i--) {
-    n = node.childNodes[i];
-    if (isTextNode(n)) {
-      if (textRangeStart == -1) {
-        textRangeStart = i;
-      }
-      if (i === 0) {
-        // collapse leading text nodes
-        collapseTextRange(node, 0, textRangeStart);
-      }
-    } else {
-      // recurse
-      normalize(n);
-      // collapse the range after this node
-      if (textRangeStart > -1) {
-        collapseTextRange(node, i + 1, textRangeStart);
-        textRangeStart = -1;
-      }
-    }
-  }
-}
-
-/**
- * Return the text value of a node or element
- *
- * Equivalent to `node.textContent` in the browser
- */
-function getTextContent(node) {
-  if (isCommentNode(node)) {
-    return node.data;
-  }
-  if (isTextNode(node)) {
-    return node.value;
-  }
-  var subtree = nodeWalkAll(node, isTextNode);
-  return subtree.map(getTextContent).join('');
-}
-
-/**
- * Set the text value of a node or element
- *
- * Equivalent to `node.textContent = value` in the browser
- */
-function setTextContent(node, value) {
-  if (isCommentNode(node)) {
-    node.data = value;
-  } else if (isTextNode(node)) {
-    node.value = value;
-  } else {
-    var tn = newTextNode(value);
-    tn.parentNode = node;
-    node.childNodes = [tn];
-  }
-}
-
-/**
- * Match the text inside an element, textnode, or comment
- *
- * Note: nodeWalkAll with hasTextValue may return an textnode and its parent if
- * the textnode is the only child in that parent.
- */
-function hasTextValue(value) {
-  return function(node) {
-    return getTextContent(node) === value;
-  };
-}
-
-/**
- * OR an array of predicates
- */
-function OR(/* ...rules */) {
-  var rules = new Array(arguments.length);
-  for (var i = 0; i < arguments.length; i++) {
-    rules[i] = arguments[i];
-  }
-  return function(node) {
-    for (var i = 0; i < rules.length; i++) {
-      if (rules[i](node)) {
-        return true;
-      }
-    }
-    return false;
-  };
-}
-
-/**
- * AND an array of predicates
- */
-function AND(/* ...rules */) {
-  var rules = new Array(arguments.length);
-  for (var i = 0; i < arguments.length; i++) {
-    rules[i] = arguments[i];
-  }
-  return function(node) {
-    for (var i = 0; i < rules.length; i++) {
-      if (!rules[i](node)) {
-        return false;
-      }
-    }
-    return true;
-  };
-}
-
-/**
- * negate an individual predicate, or a group with AND or OR
- */
-function NOT(predicateFn) {
-  return function(node) {
-    return !predicateFn(node);
-  };
-}
-
-/**
- * Returns a predicate that matches any node with a parent matching `predicateFn`.
- */
-function parentMatches(predicateFn) {
-  return function(node) {
-    var parent = node.parentNode;
-    while(parent !== undefined) {
-      if (predicateFn(parent)) {
-        return true;
-      }
-      parent = parent.parentNode;
-    }
-    return false;
-  };
-}
-
-function hasAttr(attr) {
-  return function(node) {
-    return getAttributeIndex(node, attr) > -1;
-  };
-}
-
-function hasAttrValue(attr, value) {
-  return function(node) {
-    return getAttribute(node, attr) === value;
-  };
-}
-
-function isDocument(node) {
-  return node.nodeName === '#document';
-}
-
-function isDocumentFragment(node) {
-  return node.nodeName === '#document-fragment';
-}
-
-function isElement(node) {
-  return node.nodeName === node.tagName;
-}
-
-function isTextNode(node) {
-  return node.nodeName === '#text';
-}
-
-function isCommentNode(node) {
-  return node.nodeName === '#comment';
-}
-
-/**
- * Applies `mapfn` to `node` and the tree below `node`, returning a flattened
- * list of results.
- * @return {Array}
- */
-function treeMap(node, mapfn) {
-  var results = [];
-  nodeWalk(node, function(node){
-    results = results.concat(mapfn(node));
-    return false;
-  });
-  return results;
-}
-
-/**
- * Walk the tree down from `node`, applying the `predicate` function.
- * Return the first node that matches the given predicate.
- *
- * @returns {Node} `null` if no node matches, parse5 node object if a node
- * matches
- */
-function nodeWalk(node, predicate) {
-  if (predicate(node)) {
-    return node;
-  }
-  var match = null;
-  if (node.childNodes) {
-    for (var i = 0; i < node.childNodes.length; i++) {
-      match = nodeWalk(node.childNodes[i], predicate);
-      if (match) {
-        break;
-      }
-    }
-  }
-  return match;
-}
-
-/**
- * Walk the tree down from `node`, applying the `predicate` function.
- * All nodes matching the predicate function from `node` to leaves will be
- * returned.
- *
- * @returns {Array[Node]}
- */
-function nodeWalkAll(node, predicate, matches) {
-  if (!matches) {
-    matches = [];
-  }
-  if (predicate(node)) {
-    matches.push(node);
-  }
-  if (node.childNodes) {
-    for (var i = 0; i < node.childNodes.length; i++) {
-      nodeWalkAll(node.childNodes[i], predicate, matches);
-    }
-  }
-  return matches;
-}
-
-function _reverseNodeWalkAll(node, predicate, matches) {
-  if (!matches) {
-    matches = [];
-  }
-  if (node.childNodes) {
-    for (var i = node.childNodes.length - 1; i >= 0; i--) {
-      nodeWalkAll(node.childNodes[i], predicate, matches);
-    }
-  }
-  if (predicate(node)) {
-    matches.push(node);
-  }
-  return matches;
-}
-
-/**
- * Equivalent to `nodeWalkAll`, but only returns nodes that are either 
- * ancestors or earlier cousins/siblings in the document.
- *
- * Nodes are returned in reverse document order, starting from `node`.
- */
-function nodeWalkAllPrior(node, predicate, matches) {
-  if (!matches) {
-    matches = [];
-  }
-  if (predicate(node)) {
-    matches.push(node);
-  }
-  // Search our earlier siblings and their descendents.
-  var parent = node.parentNode;
-  if (parent) {
-    var idx = parent.childNodes.indexOf(node);
-    var siblings = parent.childNodes.slice(0, idx);
-    for (var i = siblings.length-1; i >= 0; i--) {
-      _reverseNodeWalkAll(siblings[i], predicate, matches);
-    }
-    nodeWalkAllPrior(parent, predicate, matches);
-  }
-  return matches;
-}
-
-/**
- * Equivalent to `nodeWalk`, but only matches elements
- *
- * @returns {Element}
- */
-function query(node, predicate) {
-  var elementPredicate = AND(isElement, predicate);
-  return nodeWalk(node, elementPredicate);
-}
-
-/**
- * Equivalent to `nodeWalkAll`, but only matches elements
- *
- * @return {Array[Element]}
- */
-function queryAll(node, predicate, matches) {
-  var elementPredicate = AND(isElement, predicate);
-  return nodeWalkAll(node, elementPredicate, matches);
-}
-
-function newTextNode(value) {
-  return {
-    nodeName: '#text',
-    value: value,
-    parentNode: null
-  };
-}
-
-function newCommentNode(comment) {
-  return {
-    nodeName: '#comment',
-    data: comment,
-    parentNode: null
-  };
-}
-
-function newElement(tagName, namespace) {
-  return {
-    nodeName: tagName,
-    tagName: tagName,
-    childNodes: [],
-    namespaceURI: namespace || 'http://www.w3.org/1999/xhtml',
-    attrs: [],
-    parentNode: null,
-  };
-}
-
-function replace(oldNode, newNode) {
-  insertBefore(oldNode.parentNode, oldNode, newNode);
-  remove(oldNode);
-}
-
-function remove(node) {
-  var parent = node.parentNode;
-  if (parent) {
-    var idx = parent.childNodes.indexOf(node);
-    parent.childNodes.splice(idx, 1);
-  }
-  node.parentNode = null;
-}
-
-function insertBefore(parent, oldNode, newNode) {
-  remove(newNode);
-  var idx = parent.childNodes.indexOf(oldNode);
-  parent.childNodes.splice(idx, 0, newNode);
-  newNode.parentNode = parent;
-}
-
-function append(parent, node) {
-  remove(node);
-  parent.childNodes.push(node);
-  node.parentNode = parent;
-}
-
-var parse5 = require('parse5');
-function parse(text, options) {
-  var parser = new parse5.Parser(parse5.TreeAdapters.default, options);
-  return parser.parse(text);
-}
-
-function parseFragment(text) {
-  var parser = new parse5.Parser();
-  return parser.parseFragment(text);
-}
-
-function serialize(ast) {
-  var serializer = new parse5.Serializer();
-  return serializer.serialize(ast);
-}
-
-module.exports = {
-  getAttribute: getAttribute,
-  hasAttribute: hasAttribute,
-  setAttribute: setAttribute,
-  removeAttribute: removeAttribute,
-  getTextContent: getTextContent,
-  setTextContent: setTextContent,
-  remove: remove,
-  replace: replace,
-  append: append,
-  insertBefore: insertBefore,
-  normalize: normalize,
-  isDocument: isDocument,
-  isDocumentFragment: isDocumentFragment,
-  isElement: isElement,
-  isTextNode: isTextNode,
-  isCommentNode: isCommentNode,
-  query: query,
-  queryAll: queryAll,
-  nodeWalk: nodeWalk,
-  nodeWalkAll: nodeWalkAll,
-  nodeWalkAllPrior: nodeWalkAllPrior,
-  treeMap: treeMap,
-  predicates: {
-    hasClass: hasClass,
-    hasAttr: hasAttr,
-    hasAttrValue: hasAttrValue,
-    hasMatchingTagName: hasMatchingTagName,
-    hasTagName: hasTagName,
-    hasTextValue: hasTextValue,
-    AND: AND,
-    OR: OR,
-    NOT: NOT,
-    parentMatches: parentMatches
-  },
-  constructors: {
-    text: newTextNode,
-    comment: newCommentNode,
-    element: newElement
-  },
-  parse: parse,
-  parseFragment: parseFragment,
-  serialize: serialize
-};
-
-},{"parse5":51}],77:[function(require,module,exports){
+},{"../common/doctype":57,"../common/foreign_content":58,"../common/html":59,"../common/unicode":60,"../common/utils":61,"../tokenization/tokenizer":70,"../tree_adapters/default":71,"./formatting_element_list":73,"./location_info_mixin":74,"./open_element_stack":75}],77:[function(require,module,exports){
 (function (process){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -40576,7 +41029,7 @@ exports = module.exports = require('./lib/cheerio');
 
 exports.version = require('./package').version;
 
-},{"./lib/cheerio":83,"./package":124}],79:[function(require,module,exports){
+},{"./lib/cheerio":83,"./package":145}],79:[function(require,module,exports){
 var _ = require('lodash'),
   utils = require('../utils'),
   isTag = utils.isTag,
@@ -42107,7 +42560,7 @@ exports.update = function (arr, parent) {
 // module.exports = $.extend(exports);
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":6,"parse5":51}],85:[function(require,module,exports){
+},{"buffer":6,"parse5":124}],85:[function(require,module,exports){
 /*
  Module dependencies
  */
@@ -42270,7 +42723,7 @@ var renderComment = function (elem) {
 
 // module.exports = $.extend(exports);
 
-},{"./utils":87,"lodash":123,"parse5":51}],86:[function(require,module,exports){
+},{"./utils":87,"lodash":123,"parse5":124}],86:[function(require,module,exports){
 /**
  * Module dependencies
  */
@@ -51424,6 +51877,48 @@ arguments[4][104][0].apply(exports,arguments)
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{}],124:[function(require,module,exports){
+arguments[4][56][0].apply(exports,arguments)
+},{"./lib/jsdom/jsdom_parser":130,"./lib/serialization/serializer":132,"./lib/simple_api/simple_api_parser":133,"./lib/tree_adapters/default":139,"./lib/tree_adapters/htmlparser2":140,"./lib/tree_construction/parser":144,"dup":56}],125:[function(require,module,exports){
+arguments[4][57][0].apply(exports,arguments)
+},{"dup":57}],126:[function(require,module,exports){
+arguments[4][58][0].apply(exports,arguments)
+},{"../tokenization/tokenizer":138,"./html":127,"dup":58}],127:[function(require,module,exports){
+arguments[4][59][0].apply(exports,arguments)
+},{"dup":59}],128:[function(require,module,exports){
+arguments[4][60][0].apply(exports,arguments)
+},{"dup":60}],129:[function(require,module,exports){
+arguments[4][61][0].apply(exports,arguments)
+},{"dup":61}],130:[function(require,module,exports){
+arguments[4][62][0].apply(exports,arguments)
+},{"../tree_construction/parser":144,"./parsing_unit":131,"_process":12,"dup":62}],131:[function(require,module,exports){
+arguments[4][63][0].apply(exports,arguments)
+},{"dup":63}],132:[function(require,module,exports){
+arguments[4][64][0].apply(exports,arguments)
+},{"../common/doctype":125,"../common/html":127,"../common/utils":129,"../tree_adapters/default":139,"dup":64}],133:[function(require,module,exports){
+arguments[4][65][0].apply(exports,arguments)
+},{"../common/utils":129,"../tokenization/tokenizer":138,"./tokenizer_proxy":134,"dup":65}],134:[function(require,module,exports){
+arguments[4][66][0].apply(exports,arguments)
+},{"../common/foreign_content":126,"../common/html":127,"../common/unicode":128,"../tokenization/tokenizer":138,"dup":66}],135:[function(require,module,exports){
+arguments[4][67][0].apply(exports,arguments)
+},{"dup":67}],136:[function(require,module,exports){
+arguments[4][68][0].apply(exports,arguments)
+},{"dup":68}],137:[function(require,module,exports){
+arguments[4][69][0].apply(exports,arguments)
+},{"../common/unicode":128,"dup":69}],138:[function(require,module,exports){
+arguments[4][70][0].apply(exports,arguments)
+},{"../common/unicode":128,"./location_info_mixin":135,"./named_entity_trie":136,"./preprocessor":137,"dup":70}],139:[function(require,module,exports){
+arguments[4][71][0].apply(exports,arguments)
+},{"dup":71}],140:[function(require,module,exports){
+arguments[4][72][0].apply(exports,arguments)
+},{"../common/doctype":125,"dup":72}],141:[function(require,module,exports){
+arguments[4][73][0].apply(exports,arguments)
+},{"dup":73}],142:[function(require,module,exports){
+arguments[4][74][0].apply(exports,arguments)
+},{"../common/html":127,"../tokenization/tokenizer":138,"./open_element_stack":143,"dup":74}],143:[function(require,module,exports){
+arguments[4][75][0].apply(exports,arguments)
+},{"../common/html":127,"dup":75}],144:[function(require,module,exports){
+arguments[4][76][0].apply(exports,arguments)
+},{"../common/doctype":125,"../common/foreign_content":126,"../common/html":127,"../common/unicode":128,"../common/utils":129,"../tokenization/tokenizer":138,"../tree_adapters/default":139,"./formatting_element_list":141,"./location_info_mixin":142,"./open_element_stack":143,"dup":76}],145:[function(require,module,exports){
 module.exports={
   "author": {
     "name": "Matt Mueller",
@@ -51478,7 +51973,7 @@ module.exports={
   "homepage": "https://github.com/inikulin/whacko",
   "_id": "whacko@0.18.1",
   "_shasum": "ec28892f44049be80280251844047e0b53b40789",
-  "_from": "whacko@",
+  "_from": "whacko@>=0.18.1 <0.19.0",
   "_npmVersion": "1.4.28",
   "_npmUser": {
     "name": "inikulin",
