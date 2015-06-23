@@ -40,6 +40,9 @@
     label {
       -webkit-font-smoothing: antialiased;
     }
+    .errorMessage {
+      color: #C15454
+    }
   </style>
   <template>
     <div id='wrapper'>
@@ -65,6 +68,7 @@
       </div>
       <div id='right'>
         <label>Polymer 1.0 output:</label>
+        <span class='errorMessage'>{{errorMessage}}</span>
         <div id='output'>
           <!-- This will be a read-only ace editor -->
         </div>
@@ -99,6 +103,7 @@
       output.setHighlightActiveLine(false);
       output.setHighlightGutterLine(false);
 
+      var self = this;
       function onChange() {
         var scrollPos = output.getSession().getScrollTop();
         var editorValue = editor.getValue();
@@ -106,7 +111,13 @@
         // will be very fast, otherwise it drops some keyboard events, and
         // in general behaves *very* strange.
         requestAnimationFrame(function() {
-          var outputVal = Polyup.upgradeHtml(editor.getValue());
+          try {
+            var outputVal = Polyup.upgradeHtml(editor.getValue());
+          } catch(e) {
+            self.errorMessage = e.message || e.toString();
+            return;
+          }
+          self.errorMessage = '';
           output.setValue(outputVal);
           output.clearSelection()
           output.getSession().setScrollTop(scrollPos);
