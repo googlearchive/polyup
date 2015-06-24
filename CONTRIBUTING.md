@@ -1,5 +1,3 @@
-`polyup` is open source software! Want to change something? Fork the repo and send us a pull request!
-
 When reading the code for the first time, I recommend starting at
 lib/upgrade_html.js and then flow through into lib/upgrade_js.js and expand out
 from there.
