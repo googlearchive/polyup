@@ -11,9 +11,10 @@
 <script>
   Polymer({
     is: 'resizable-thing',
-    behaviors: [Polymer.CoreResizer]
+    behaviors: [Polymer.IronResizableBehavior]
   });
 </script>
+<resizable-thing></resizable-thing>
 
 
 
