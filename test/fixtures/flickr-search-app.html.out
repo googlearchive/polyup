@@ -1,6 +1,6 @@
 <!DOCTYPE html><html><head>
   <title>A simple flickr search example</title>
-  <script src="components/webcomponentsjs/webcomponents_lite.js"></script>
+  <script src="components/webcomponentsjs/webcomponents-lite.js"></script>
   <link rel="import" href="components/polymer/polymer.html">
   <link rel="import" href="components/iron-ajax/iron-ajax.html">
   <link rel="import" href="components/paper-spinner/paper-spinner.html">
