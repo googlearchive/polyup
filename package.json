@@ -21,6 +21,7 @@
   },
   "dependencies": {
     "colors": "^1.1.2",
+    "es6-collections": "^0.5.1",
     "escodegen": "^1.6.1",
     "espree": "^2.0.3",
     "estree-walker": "rictic/estree-walker#distrib",
