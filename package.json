@@ -14,7 +14,7 @@
   "keywords": [
     "polymer"
   ],
-  "author": "",
+  "author": "The Polymer Project Authors",
   "license": "BSD-3-Clause",
   "directories": {
     "test": "test"
@@ -41,5 +41,8 @@
   },
   "browser": {
     "fs": "./build/fake-fs.js"
+  },
+  "bugs": {
+    "url": "https://github.com/PolymerLabs/polyup/issues"
   }
 }
