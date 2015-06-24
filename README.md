@@ -69,6 +69,9 @@ Please file bugs as you see them! See [CONTRIBUTING.md](CONTRIBUTING.md) for mor
 - [ ] Upgrades/warns on `<template bind>`
   - [ ] Handles `<template bind='{{x}}'>`
   - [ ] Handles `<template bind='{{x as y}}'>`
+- [x] Upgrades `<template is='auto-binding'>`
+  - [x] Adds a warning for expressions that are too complex for
+        `<template is='dom-bind'>`
 - [ ] Upgrades all template data binding expressions.
   - [x] Doesn't touch expressions made up only of identifiers, property
         accesses, or expressions that are just a function call with arguments

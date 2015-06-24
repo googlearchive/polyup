@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Template bind</title>
+  <script src='components/webcomponentsjs/webcomponents.js'></script>
+  <link rel='import' href='components/polymer/polymer.html'>
+</head>
+<body>
+
+<template is='auto-binding'>
+  <input autofocus value='{{greeting}}'>
+  <div>
+    Hello world.
+  </div>
+  <div>
+    User says: {{greeting}}
+  </div>
+  <div>
+    This won't work in 1.0: {{greeting + " world"}}
+  </div>
+</template>
+
+</body>
+</html>
