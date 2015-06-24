@@ -2,6 +2,7 @@
   "name": "polyup",
   "version": "0.1.0",
   "description": "Helps you upgrade from Polymer 0.5 to 1.0!",
+  "repository": "PolymerLabs/polyup",
   "main": "lib/upgrade_html.js",
   "bin": "lib/node_main.js",
   "scripts": {
@@ -22,7 +23,7 @@
     "colors": "^1.1.2",
     "escodegen": "^1.6.1",
     "espree": "^2.0.3",
-    "estree-walker": "^0.1.1",
+    "estree-walker": "rictic/estree-walker#distrib",
     "lodash": "^3.9.3",
     "string.prototype.endswith": "^0.2.0",
     "vulcanize": "^1.9.2",
