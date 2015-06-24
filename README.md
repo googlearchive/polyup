@@ -95,7 +95,6 @@ Please file bugs as you see them! See [CONTRIBUTING.md](CONTRIBUTING.md) for mor
     - [ ] *Your feature request here.*
   - [ ] May need to remove curly braces from on-* event handler attributes.
         Investigation needed.
-
 - [x] `webcomponents(.min)?.js` -> `webcomponents_lite(.min)?.js`
 - [ ] Upgrades official elements from 0.5 to 1.0 mode.
   - [x] Upgrades imports to the new element names and paths.
@@ -110,6 +109,7 @@ Please file bugs as you see them! See [CONTRIBUTING.md](CONTRIBUTING.md) for mor
   - [ ] Renames methods, e.g.
         `this.$.ajax.go()` -> `this.$.ajax.generateRequest()`
 - [ ] Removes the unresolved attribute
+- [x] Handles Polymer.mixin and Polymer.mixin2
 
 ### Javascript
 - [x] Infers element name from the context in which a script was loaded.
