@@ -104,6 +104,9 @@ Please file bugs as you see them! See [CONTRIBUTING.md](CONTRIBUTING.md) for mor
   - [ ] Adds additional imports when necessary.
   - [ ] Warns on other major breaking changes to elements.
   - [ ] Upgrades mixins from 0.5 into behaviors of 1.0.
+  - [ ] Renames methods, e.g.
+        `this.$.ajax.go()` -> `this.$.ajax.generateRequest()`
+- [ ] Removes the unresolved attribute
 
 ### Javascript
 - [x] Infers element name from the context in which a script was loaded.
