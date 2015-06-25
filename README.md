@@ -105,11 +105,13 @@ Please file bugs as you see them! See [CONTRIBUTING.md](CONTRIBUTING.md) for mor
         version.
   - [ ] Adds additional imports when necessary.
   - [ ] Warns on other major breaking changes to elements.
-  - [x] Upgrades mixins from 0.5 into behaviors of 1.0.
+  - [x] Upgrades official mixins from 0.5 into behaviors of 1.0.
   - [ ] Renames methods, e.g.
         `this.$.ajax.go()` -> `this.$.ajax.generateRequest()`
 - [ ] Removes the unresolved attribute
-- [x] Handles Polymer.mixin and Polymer.mixin2
+- [x] Converts calls of Polymer.mixin and Polymer.mixin2 into behavior
+      declarations.
+- [ ] Detects and upgrades user-defined mixins.
 
 ### Javascript
 - [x] Infers element name from the context in which a script was loaded.
