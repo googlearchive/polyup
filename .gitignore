@@ -2,3 +2,4 @@ node_modules/
 test/
 *.sublime-project
 *.sublime-workspace
+npm-debug.log
