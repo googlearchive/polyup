@@ -11,6 +11,10 @@
     </style>
   <template>
     <div>Hello there</div>
+    <select value="{{strAttr::input}}">
+      <option value="1">One</option>
+      <option value="2">Two</option>
+    </select>
     <iron-ajax id="ajax"></iron-ajax>
     <template is="dom-if" if="{{boolAttr}}">
       <div><span>{{intAttr}}</span> times I tell you hello.</div>
@@ -29,7 +33,7 @@
         },
         notify: true
       },
-      auto: { computed: 'shouldAuto(int_val, bool_val)' },
+      auto: { computed: 'shouldAuto(intVal, boolVal)' },
       boolAttr: {
         type: Boolean,
         value: false,
@@ -53,8 +57,8 @@
         },
         notify: true
       },
-      params: { computed: 'computeParams(bool_val, int_val)' },
-      url: { computed: 'computeUrl(int_val)' },
+      params: { computed: 'computeParams(boolVal, intVal)' },
+      url: { computed: 'computeUrl(intVal)' },
       x: { observer: 'somethingsUp' }
     },
     ready: function () {
@@ -67,20 +71,20 @@
     somethingsUp: function (_, oldVal) {
       console.log('something changed from', oldVal);
     },
-    shouldAuto: function (int_val, bool_val) {
-      return int_val + bool_val;
+    shouldAuto: function (intVal, boolVal) {
+      return intVal + boolVal;
     },
-    isGood: function (int_val) {
-      return int_val > 1;
+    isGood: function (intVal) {
+      return intVal > 1;
     },
-    computeParams: function (bool_val, int_val) {
+    computeParams: function (boolVal, intVal) {
       return {
-        ok: bool_val,
-        good: this.isGood(int_val)
+        ok: boolVal,
+        good: this.isGood(intVal)
       };
     },
-    computeUrl: function (int_val) {
-      return '/api/v' + int_val + '/get';
+    computeUrl: function (intVal) {
+      return '/api/v' + intVal + '/get';
     },
     hostAttributes: { tabindex: '0' }
   });

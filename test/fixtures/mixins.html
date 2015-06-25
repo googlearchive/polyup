@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>mixins</title>
+  <script src='components/webcomponentsjs/webcomponents.js'></script>
+  <link rel='import' href='components/polymer/polymer.html'>
+  <link rel='import' href='components/core-resizable/core-resizable.html'>
+</head>
+<body>
+
+<polymer-element name='resizable-thing'>
+  <script>
+    Polymer(Polymer.mixin({}, Polymer.CoreResizable));
+  </script>
+</polymer-element>
+<resizable-thing></resizable-thing>
+
+</body>
+</html>

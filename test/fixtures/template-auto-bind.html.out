@@ -1,0 +1,28 @@
+<!DOCTYPE html><html><head>
+  <title>Template bind</title>
+  <script src="components/webcomponentsjs/webcomponents-lite.js"></script>
+  <link rel="import" href="components/polymer/polymer.html">
+</head>
+<body>
+
+<template is="dom-bind">
+  <input autofocus="" value="{{greeting::input}}">
+  <div>
+    Hello world.
+  </div>
+  <div>
+    User says: <span>{{greeting}}</span>
+  </div>
+  <div>
+    This won't work in 1.0: <span><!--
+    This expression can't work in a dom-bind template, as it should
+    be an anonymous computed property. If you convert it into a
+    Polymer element then polyup should be able to upgrade it.
+ -->
+{{greeting + " world"}}</span>
+  </div>
+</template>
+
+
+
+</body></html>

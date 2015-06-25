@@ -69,6 +69,9 @@ Please file bugs as you see them! See [CONTRIBUTING.md](CONTRIBUTING.md) for mor
 - [ ] Upgrades/warns on `<template bind>`
   - [ ] Handles `<template bind='{{x}}'>`
   - [ ] Handles `<template bind='{{x as y}}'>`
+- [x] Upgrades `<template is='auto-binding'>`
+  - [x] Adds a warning for expressions that are too complex for
+        `<template is='dom-bind'>`
 - [ ] Upgrades all template data binding expressions.
   - [x] Doesn't touch expressions made up only of identifiers, property
         accesses, or expressions that are just a function call with arguments
@@ -92,7 +95,6 @@ Please file bugs as you see them! See [CONTRIBUTING.md](CONTRIBUTING.md) for mor
     - [ ] *Your feature request here.*
   - [ ] May need to remove curly braces from on-* event handler attributes.
         Investigation needed.
-
 - [x] `webcomponents(.min)?.js` -> `webcomponents_lite(.min)?.js`
 - [ ] Upgrades official elements from 0.5 to 1.0 mode.
   - [x] Upgrades imports to the new element names and paths.
@@ -103,10 +105,13 @@ Please file bugs as you see them! See [CONTRIBUTING.md](CONTRIBUTING.md) for mor
         version.
   - [ ] Adds additional imports when necessary.
   - [ ] Warns on other major breaking changes to elements.
-  - [ ] Upgrades mixins from 0.5 into behaviors of 1.0.
+  - [x] Upgrades official mixins from 0.5 into behaviors of 1.0.
   - [ ] Renames methods, e.g.
         `this.$.ajax.go()` -> `this.$.ajax.generateRequest()`
 - [ ] Removes the unresolved attribute
+- [x] Converts calls of Polymer.mixin and Polymer.mixin2 into behavior
+      declarations.
+- [ ] Detects and upgrades user-defined mixins.
 
 ### Javascript
 - [x] Infers element name from the context in which a script was loaded.
