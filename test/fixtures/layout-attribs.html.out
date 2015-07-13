@@ -10,6 +10,9 @@
     }
   </style>
   <style is="custom-style">
+    /* TODO(polyup): For speed, consider reworking these styles with .classes
+                     and #ids rather than [attributes].
+    */
     [layout] {
       @apply(--layout);
     }
@@ -34,6 +37,9 @@
 
 <dom-module id="element-uses-layout">
   <style>
+    /* TODO(polyup): For speed, consider reworking these styles with .classes
+                     and #ids rather than [attributes].
+    */
     :host[layout] {
       @apply(--layout);
     }
