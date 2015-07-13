@@ -153,7 +153,7 @@ Please file bugs as you see them! See [CONTRIBUTING.md](CONTRIBUTING.md) for mor
         setAttribute, removeAttribute, classList
 
 ### CSS
-- [ ] Detect layout attributes in HTML and add them back in to the element's
+- [x] Detect layout attributes in HTML and add them back in to the element's
       `<style>`.
 - [ ] Fix `<link rel='stylesheet' href='...'>`
 

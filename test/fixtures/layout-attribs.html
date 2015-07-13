@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Layout attributes</title>
+  <script src='components/webcomponentsjs/webcomponents.js'></script>
+  <link rel='import' href='components/polymer/polymer.html'>
+  <style>
+    .thing {
+      display: block;
+      max-width: 300px;
+      height: 300px;
+    }
+  </style>
+</head>
+<body>
+
+<div layout horizontal justified class='thing'>
+  <div>Left</div>
+  <div>Right</div>
+</div>
+
+<polymer-element name='element-uses-layout' noscript layout vertical justified>
+  <template>
+    <div>Top</div>
+    <div layout horizontal justified>
+      <div>Left</div>
+      <div>Right</div>
+    </div>
+    <div>Bottom</div>
+    <div fit hidden>Imhotep</div>
+  </template>
+</polymer-element>
+
+<element-uses-layout class='thing'></element-uses-layout>
+
+</body>
+</html>

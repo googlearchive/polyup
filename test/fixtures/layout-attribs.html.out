@@ -1,0 +1,97 @@
+<!DOCTYPE html><html><head>
+  <title>Layout attributes</title>
+  <script src="components/webcomponentsjs/webcomponents-lite.js"></script>
+  <link rel="import" href="components/polymer/polymer.html">
+  <style>
+    .thing {
+      display: block;
+      max-width: 300px;
+      height: 300px;
+    }
+  </style>
+  <style is="custom-style">
+    /* TODO(polyup): For speed, consider reworking these styles with .classes
+                     and #ids rather than [attributes].
+    */
+    [layout] {
+      @apply(--layout);
+    }
+    [layout][horizontal] {
+      @apply(--layout-horizontal);
+    }
+    [layout][justified] {
+      @apply(--layout-justified);
+    }
+    [layout][vertical] {
+      @apply(--layout-vertical);
+    }
+  </style>
+  <link rel="import" href="components/iron-flex-layout/iron-flex-layout.html">
+</head>
+<body>
+
+<div layout="" horizontal="" justified="" class="thing">
+  <div>Left</div>
+  <div>Right</div>
+</div>
+
+<dom-module id="element-uses-layout">
+  <style>
+    /* TODO(polyup): For speed, consider reworking these styles with .classes
+                     and #ids rather than [attributes].
+    */
+    :host[layout] {
+      @apply(--layout);
+    }
+    :host[layout][vertical] {
+      @apply(--layout-vertical);
+    }
+    :host[layout][justified] {
+      @apply(--layout-justified);
+    }
+    [layout] {
+      @apply(--layout);
+    }
+    [layout][horizontal] {
+      @apply(--layout-horizontal);
+    }
+    [layout][justified] {
+      @apply(--layout-justified);
+    }
+    [fit] {
+      position: absolute;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: 0;
+    }
+    [hidden] {
+      display: none !important;
+    }
+  </style>
+  <template>
+    <div>Top</div>
+    <div layout="" horizontal="" justified="">
+      <div>Left</div>
+      <div>Right</div>
+    </div>
+    <div>Bottom</div>
+    <div fit="" hidden="">Imhotep</div>
+  </template>
+</dom-module>
+<script>
+  Polymer({
+    is: 'element-uses-layout',
+    hostAttributes: {
+      layout: '',
+      vertical: '',
+      justified: ''
+    }
+  });
+</script>
+
+<element-uses-layout class="thing"></element-uses-layout>
+
+
+
+</body></html>
