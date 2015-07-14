@@ -2,6 +2,8 @@
 
 ### Automates the boring parts of migrating your code from Polymer 0.5 to 1.0.
 
+[![Build Status](https://travis-ci.org/PolymerLabs/polyup.svg?branch=master)](https://travis-ci.org/PolymerLabs/polyup)
+
 The change from Polymer 0.5 to 1.0 is a large one, as we
 transitioned from exploratory beta releases to a stable production-ready
 product.
