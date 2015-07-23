@@ -1,6 +1,6 @@
 {
   "name": "polyup",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Helps you upgrade from Polymer 0.5 to 1.0!",
   "repository": "PolymerLabs/polyup",
   "main": "lib/upgrade_html.js",
