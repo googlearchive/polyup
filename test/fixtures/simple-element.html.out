@@ -24,7 +24,9 @@
 </dom-module>
 <script>
   // this is a comment
-  Polymer({
+  Polymer(//TODO(polyup): Need to add an observer of z.v.k, calling somethingsUp.
+  //Note that the semantics for observing properties and arrays has changed.
+  {
     is: 'simple-element',
     properties: {
       arrayAttr: {
@@ -60,12 +62,7 @@
       },
       params: { computed: 'computeParams(boolVal, intVal)' },
       url: { computed: 'computeUrl(intVal)' },
-      x: { observer: 'somethingsUp' },
-      z.v.k: {
-        observer: //The semantics for observing properties and arrays has changed.
-        //See: https://www.polymer-project.org/1.0/docs/devguide/properties.html#observing-path-changes
-        'somethingsUp'
-      }
+      x: { observer: 'somethingsUp' }
     },
     ready: function () {
       console.log('ready!');
