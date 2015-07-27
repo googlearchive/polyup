@@ -11,6 +11,7 @@
     </style>
   <template>
     <div>Hello there</div>
+    <input>
     <select value="{{strAttr::input}}">
       <option value="1">One</option>
       <option value="2">Two</option>
