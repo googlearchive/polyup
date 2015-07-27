@@ -27,9 +27,9 @@
 </dom-module>
 <script>
   // this is a comment
-  Polymer(//TODO(polyup): Need to add an observer of z.v.k, calling somethingsUp.
+  //TODO(polyup): Need to add an observer of z.v.k, calling somethingsUp.
   //Note that the semantics for observing properties and arrays has changed.
-  {
+  Polymer({
     is: 'simple-element',
     properties: {
       arrayAttr: {
