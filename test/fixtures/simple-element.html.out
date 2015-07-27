@@ -18,7 +18,10 @@
     </select>
     <iron-ajax id="ajax"></iron-ajax>
     <template is="dom-if" if="{{boolAttr}}">
-      <div><span>{{intAttr}}</span> times I tell you hello.</div>
+      <div><span>{{intAttr}}</span> times I tell you <span>{{strAttr}}</span>.</div>
+      <div><span>{{intAttr}}</span> times I tell you <span>{{strAttr}}</span></div>
+      <div>Yes <span>{{intAttr}}</span> times I tell you <span>{{strAttr}}</span></div>
+      <div>Yes <span>{{intAttr}}</span> times I tell you <span>{{strAttr}}</span>.</div>
     </template>
   </template>
 </dom-module>
