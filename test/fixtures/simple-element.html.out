@@ -60,7 +60,12 @@
       },
       params: { computed: 'computeParams(boolVal, intVal)' },
       url: { computed: 'computeUrl(intVal)' },
-      x: { observer: 'somethingsUp' }
+      x: { observer: 'somethingsUp' },
+      z.v.k: {
+        observer: //The semantics for observing properties and arrays has changed.
+        //See: https://www.polymer-project.org/1.0/docs/devguide/properties.html#observing-path-changes
+        'somethingsUp'
+      }
     },
     ready: function () {
       console.log('ready!');
