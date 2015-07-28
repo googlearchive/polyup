@@ -4,4 +4,3 @@ node_modules
 test/bower_0.5/bower_components
 test/bower_1.0/bower_components
 bower_components
-dist/

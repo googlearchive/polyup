@@ -10,22 +10,54 @@
 
 'use strict';
 
-import whacko from 'whacko';
-import fs from 'fs';
-import 'string.prototype.endswith';
-import upgradeJs from './upgrade_js';
-import upgradeCss from './upgrade_css';
-import _ from 'lodash';
-import path from 'path';
-import PathResolver from 'vulcanize/lib/pathresolver';
-import elementMapping from './element_mapping';
-import escodegen from 'escodegen';
-import es6Collections from 'es6-collections';
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+var _whacko = require('whacko');
+
+var _whacko2 = _interopRequireDefault(_whacko);
+
+var _fs = require('fs');
+
+var _fs2 = _interopRequireDefault(_fs);
+
+require('string.prototype.endswith');
+
+var _upgrade_js = require('./upgrade_js');
+
+var _upgrade_js2 = _interopRequireDefault(_upgrade_js);
+
+var _upgrade_css = require('./upgrade_css');
+
+var _upgrade_css2 = _interopRequireDefault(_upgrade_css);
+
+var _lodash = require('lodash');
+
+var _lodash2 = _interopRequireDefault(_lodash);
+
+var _path = require('path');
+
+var _path2 = _interopRequireDefault(_path);
+
+var _vulcanizeLibPathresolver = require('vulcanize/lib/pathresolver');
+
+var _vulcanizeLibPathresolver2 = _interopRequireDefault(_vulcanizeLibPathresolver);
+
+var _element_mapping = require('./element_mapping');
+
+var _element_mapping2 = _interopRequireDefault(_element_mapping);
+
+var _escodegen = require('escodegen');
+
+var _escodegen2 = _interopRequireDefault(_escodegen);
+
+var _es6Collections = require('es6-collections');
 
 // jshint -W079
-var Set = es6Collections.Set || global.Set;
-// jshint +W079
 
+var _es6Collections2 = _interopRequireDefault(_es6Collections);
+
+var Set = _es6Collections2['default'].Set || global.Set;
+// jshint +W079
 
 /**
  * Upgrades an HTML file and any referenced scripts from Polymer 0.5 to 1.0.
@@ -36,21 +68,21 @@ var Set = es6Collections.Set || global.Set;
 function upgradeHtml(filename, options) {
   options = options || {};
   options.toIgnore = options.toIgnore || new Set();
-  filename = path.resolve(filename);
-  var elemSource = fs.readFileSync(filename, 'utf-8');
+  filename = _path2['default'].resolve(filename);
+  var elemSource = _fs2['default'].readFileSync(filename, 'utf-8');
   var results = {};
   var upgradedScriptElems = new Set();
 
-  var $ = whacko.load(elemSource);
+  var $ = _whacko2['default'].load(elemSource);
 
-  $('template[is=auto-binding]').each(function(_ignored, autoBindTemplate) {
+  $('template[is=auto-binding]').each(function (_ignored, autoBindTemplate) {
     autoBindTemplate.attribs.is = 'dom-bind';
     upgradeDataBoundTemplate($, autoBindTemplate);
   });
 
   upgradeGlobalCss($);
 
-  $('polymer-element').each(function(_ignored, polyElem) {
+  $('polymer-element').each(function (_ignored, polyElem) {
     var elemName = polyElem.attribs.name;
 
     var domModule = $('<dom-module>');
@@ -63,7 +95,7 @@ function upgradeHtml(filename, options) {
       template = templateChildren[0];
 
       // Migrate styles up to be a direct child of dom-module
-      $(template.children[0]).find('style').each(function(_ignored, styleElem) {
+      $(template.children[0]).find('style').each(function (_ignored, styleElem) {
         domModule.append('  ');
         var before = styleElem.previousSibling;
         if (before.type === 'text') {
@@ -74,7 +106,7 @@ function upgradeHtml(filename, options) {
       });
 
       // Then move all templates in after
-      templateChildren.each(function(_ignored, templateChild) {
+      templateChildren.each(function (_ignored, templateChild) {
         domModule.append('  ');
         domModule.append(templateChild);
         domModule.append('\n');
@@ -82,22 +114,19 @@ function upgradeHtml(filename, options) {
       upgradeElementCss($, polyElem, domModule, template);
     }
 
-
     // The properties that are listed in the 'attributes' attribute are
     // published by default. The js upgrade will want to know about this.
     var attrs = {};
     if (polyElem.attribs.attributes) {
-      polyElem.attribs.attributes.split(/\s+/).forEach(
-        function(publishedAttrName) {
-          if (!publishedAttrName) {
-            return;
-          }
-          attrs[publishedAttrName] = {
-            name: publishedAttrName,
-            notify: { type: 'Literal', value: true}
-          };
+      polyElem.attribs.attributes.split(/\s+/).forEach(function (publishedAttrName) {
+        if (!publishedAttrName) {
+          return;
         }
-      );
+        attrs[publishedAttrName] = {
+          name: publishedAttrName,
+          notify: { type: 'Literal', value: true }
+        };
+      });
     }
 
     var newDeclarations = [];
@@ -107,26 +136,20 @@ function upgradeHtml(filename, options) {
     var hostAttrs = {};
     var knownAttributes = ['name', 'attributes', 'noscript', 'extends', 'id'];
     for (var attr in polyElem.attribs) {
-      if (_.contains(knownAttributes, attr)) {
+      if (_lodash2['default'].contains(knownAttributes, attr)) {
         continue;
       }
       hostAttrs[attr] = polyElem.attribs[attr];
     }
 
-
     if ('extends' in polyElem.attribs) {
       newDeclarations.push({
-          type: 'Property',
-          key: {type: 'Identifier', name: 'extends'},
-          value: {type: 'Literal', value: polyElem.attribs.extends}
+        type: 'Property',
+        key: { type: 'Identifier', name: 'extends' },
+        value: { type: 'Literal', value: polyElem.attribs['extends'] }
       });
-      if (_.contains(polyElem.attribs.extends, '-')) {
-        insertHtmlCommentBefore($, polyElem, [
-          'TODO(polyup): Inheriting from other custom ' +
-              'elements is not yet supported.',
-          'See: https://www.polymer-project.org/1.0/docs/' +
-              'migration.html#inheritance'
-        ]);
+      if (_lodash2['default'].contains(polyElem.attribs['extends'], '-')) {
+        insertHtmlCommentBefore($, polyElem, ['TODO(polyup): Inheriting from other custom ' + 'elements is not yet supported.', 'See: https://www.polymer-project.org/1.0/docs/' + 'migration.html#inheritance']);
       }
     }
 
@@ -140,13 +163,11 @@ function upgradeHtml(filename, options) {
     upgradeDataBoundTemplate($, template, newDeclarations);
 
     // Upgrade the js
-    $('script', polyElem).each(function(_, scriptElem) {
+    $('script', polyElem).each(function (_, scriptElem) {
       // Move the script after the polymer-element.
       $(polyElem).after(scriptElem);
       upgradedScriptElems.add(scriptElem);
-      var out = upgradeScriptElement(
-          $, filename, scriptElem, options.toIgnore,
-          attrs, hostAttrs, elemName, newDeclarations);
+      var out = upgradeScriptElement($, filename, scriptElem, options.toIgnore, attrs, hostAttrs, elemName, newDeclarations);
       if (out != null) {
         results[out[0]] = out[1];
       }
@@ -158,11 +179,9 @@ function upgradeHtml(filename, options) {
   });
 
   // webcomponents.js -> webcomponents-lite.js
-  $('script[src]').each(function(_ignored, scriptElem) {
+  $('script[src]').each(function (_ignored, scriptElem) {
     if (scriptElem.attribs.src.match(/webcomponents(\.min)?.js/)) {
-      scriptElem.attribs.src = scriptElem.attribs.src
-          .replace(/webcomponents.js$/, 'webcomponents-lite.js')
-          .replace(/webcomponents.min.js$/, 'webcomponents-lite.min.js');
+      scriptElem.attribs.src = scriptElem.attribs.src.replace(/webcomponents.js$/, 'webcomponents-lite.js').replace(/webcomponents.min.js$/, 'webcomponents-lite.min.js');
 
       upgradedScriptElems.add(scriptElem);
     }
@@ -170,7 +189,7 @@ function upgradeHtml(filename, options) {
 
   // Now upgrade all scripts not directly associated with any particular
   // <polymer-element>
-  $('script').each(function(_ignored, scriptElem) {
+  $('script').each(function (_ignored, scriptElem) {
     if (upgradedScriptElems.has(scriptElem)) {
       return;
     }
@@ -181,48 +200,41 @@ function upgradeHtml(filename, options) {
   });
 
   // Upgrade official polymer elements using the mappings in element_mapping.js
-  recursivelyMatchInsideTemplates($, $('body'), '*').forEach(function(elem) {
-    if (!(elem.name in elementMapping)) {
+  recursivelyMatchInsideTemplates($, $('body'), '*').forEach(function (elem) {
+    if (!(elem.name in _element_mapping2['default'])) {
       return;
     }
     var newAttribs = {};
-    var attribsToUpgrade = elementMapping[elem.name].attributes || {};
+    var attribsToUpgrade = _element_mapping2['default'][elem.name].attributes || {};
     for (var attr in elem.attribs) {
       var newAttr = attribsToUpgrade[attr] || attr;
-      if (typeof(newAttr) != 'string') {
+      if (typeof newAttr != 'string') {
         newAttr = newAttr.string;
       }
       newAttribs[newAttr] = elem.attribs[attr];
     }
-    if (elementMapping[elem.name].name) {
-      elem.name = elementMapping[elem.name].name;
+    if (_element_mapping2['default'][elem.name].name) {
+      elem.name = _element_mapping2['default'][elem.name].name;
     }
     elem.attribs = newAttribs;
   });
 
   // Upgrade imports of official polymer elements
-  $('link[rel=import][href]').each(function(_ignored, importElem) {
+  $('link[rel=import][href]').each(function (_ignored, importElem) {
     var match = importElem.attribs.href.match(/([^\/]+)\/([^\/]+)\.html$/);
     if (!match) {
       return;
     }
     var dirName = match[1];
     var fileName = match[2];
-    if (!elementMapping[dirName] || !elementMapping[fileName]) {
+    if (!_element_mapping2['default'][dirName] || !_element_mapping2['default'][fileName]) {
       return;
     }
-    var newDirname = elementMapping[fileName].dirName ||
-        elementMapping[dirName].dirName || elementMapping[fileName].name ||
-        dirName;
-    var newFilename = elementMapping[fileName].name || fileName;
+    var newDirname = _element_mapping2['default'][fileName].dirName || _element_mapping2['default'][dirName].dirName || _element_mapping2['default'][fileName].name || dirName;
+    var newFilename = _element_mapping2['default'][fileName].name || fileName;
 
-    importElem.attribs.href =
-        importElem.attribs.href.substring(0, match.index) +
-        newDirname + '/' +
-        newFilename + '.html';
+    importElem.attribs.href = importElem.attribs.href.substring(0, match.index) + newDirname + '/' + newFilename + '.html';
   });
-
-
 
   var result = $.html() + '\n';
 
@@ -258,32 +270,26 @@ function upgradeHtml(filename, options) {
  *    declaration that corresponds to elemName.
  * @return {?Array<string>}
  */
-function upgradeScriptElement($, docFilename, scriptElem, toIgnore, attrs,
-                              hostAttrs, elemName, newDeclarations) {
+function upgradeScriptElement($, docFilename, scriptElem, toIgnore, attrs, hostAttrs, elemName, newDeclarations) {
   if ('src' in scriptElem.attribs) {
     var srcPath = scriptElem.attribs.src;
-    if (PathResolver.prototype.isAbsoluteUrl(srcPath)) {
+    if (_vulcanizeLibPathresolver2['default'].prototype.isAbsoluteUrl(srcPath)) {
       return;
     }
-    var pathToScriptElem = path.resolve(path.dirname(docFilename), srcPath);
+    var pathToScriptElem = _path2['default'].resolve(_path2['default'].dirname(docFilename), srcPath);
     if (toIgnore.has(pathToScriptElem)) {
       return;
     }
     var scriptSource;
     try {
-      scriptSource = fs.readFileSync(pathToScriptElem, 'utf-8');
-    } catch(e) {
+      scriptSource = _fs2['default'].readFileSync(pathToScriptElem, 'utf-8');
+    } catch (e) {
       console.warn('Warning: unable to read script source for ' + srcPath);
       return;
     }
-    return [
-        pathToScriptElem,
-        upgradeJs(
-            scriptSource, attrs, hostAttrs, elemName, newDeclarations, 0) + '\n'
-    ];
+    return [pathToScriptElem, (0, _upgrade_js2['default'])(scriptSource, attrs, hostAttrs, elemName, newDeclarations, 0) + '\n'];
   } else {
-    var upgradedJs = upgradeJs(
-        $(scriptElem).text(), attrs, hostAttrs, elemName, newDeclarations, 1);
+    var upgradedJs = (0, _upgrade_js2['default'])($(scriptElem).text(), attrs, hostAttrs, elemName, newDeclarations, 1);
     $(scriptElem).text('\n' + upgradedJs + '\n');
   }
 }
@@ -302,10 +308,9 @@ function upgradeScriptElement($, docFilename, scriptElem, toIgnore, attrs,
 function upgradeDataBoundTemplate($, template, opt_newDeclarations) {
   var newDeclarations = opt_newDeclarations;
   // Upgrade <template if>
-  var templateIfs = recursivelyMatchInsideTemplates(
-      $, $(template), 'template[if]');
-  templateIfs.forEach(function(templateIf) {
-    var attribs = {is: 'dom-if'};
+  var templateIfs = recursivelyMatchInsideTemplates($, $(template), 'template[if]');
+  templateIfs.forEach(function (templateIf) {
+    var attribs = { is: 'dom-if' };
     for (var key in templateIf.attribs) {
       attribs[key] = templateIf.attribs[key];
     }
@@ -313,9 +318,8 @@ function upgradeDataBoundTemplate($, template, opt_newDeclarations) {
   });
 
   // Upgrade <template repeat>
-  var templateRepeats = recursivelyMatchInsideTemplates(
-      $, $(template), 'template[repeat]');
-  templateRepeats.forEach(function(templateRepeat) {
+  var templateRepeats = recursivelyMatchInsideTemplates($, $(template), 'template[repeat]');
+  templateRepeats.forEach(function (templateRepeat) {
     upgradeTemplateRepeat($, templateRepeat);
   });
 
@@ -323,7 +327,7 @@ function upgradeDataBoundTemplate($, template, opt_newDeclarations) {
   // TODO(rictic): simplify the next few sections
   var allNodes = recursivelyMatchInsideTemplates($, $(template), '*');
   var anonymousComputedCounter = 1;
-  allNodes.forEach(function(node) {
+  allNodes.forEach(function (node) {
     if (!node.attribs) {
       return;
     }
@@ -343,25 +347,24 @@ function upgradeDataBoundTemplate($, template, opt_newDeclarations) {
         var remaining = attribValue;
         var stringPieces = [];
         var match = remaining.match(/\{\{(.+?)\}\}/);
-        while(match) {
+        while (match) {
           var leadingString = remaining.substring(0, match.index);
           var innerExpression = match[1];
           remaining = remaining.substring(match.index + match[0].length);
-          stringPieces.push(escodegen.generate({
-              type: 'Literal', value: leadingString}));
+          stringPieces.push(_escodegen2['default'].generate({
+            type: 'Literal', value: leadingString }));
           stringPieces.push('(' + innerExpression + ')');
           match = remaining.match(/\{\{(.+?)\}\}/);
         }
         if (remaining.length > 0) {
-          stringPieces.push(escodegen.generate({
-              type: 'Literal', value: remaining}));
+          stringPieces.push(_escodegen2['default'].generate({
+            type: 'Literal', value: remaining }));
         }
         expression = stringPieces.join(' + ');
       } else {
         continue;
       }
-      var computedResult = upgradeJs.fixupComputedExpression(
-            attrName, expression);
+      var computedResult = _upgrade_js2['default'].fixupComputedExpression(attrName, expression);
       var newExpression = computedResult[0];
       var newDeclaration = computedResult[1];
       if (newDeclarations) {
@@ -375,11 +378,7 @@ function upgradeDataBoundTemplate($, template, opt_newDeclarations) {
         // We're in an auto-binding template where there's nowhere to put
         // new declarations.
         if (newDeclaration) {
-          insertHtmlCommentBefore($, node, [
-            'This expression can\'t work in a dom-bind template, as it should',
-            'be an anonymous computed property. If you convert it into a',
-            'Polymer element then polyup should be able to upgrade it.'
-          ]);
+          insertHtmlCommentBefore($, node, ['This expression can\'t work in a dom-bind template, as it should', 'be an anonymous computed property. If you convert it into a', 'Polymer element then polyup should be able to upgrade it.']);
         } else if (newExpression != expression) {
           node.attribs[attrName] = '{{' + newExpression + '}}';
         }
@@ -400,9 +399,7 @@ function upgradeDataBoundTemplate($, template, opt_newDeclarations) {
     var expressionTextNode;
     if (matchFullExpression && matchFullExpression[0] === textNode.data) {
       expression = matchFullExpression[1];
-      computedResult = upgradeJs.fixupComputedExpression(
-          'Expression' + (anonymousComputedCounter++),
-          expression);
+      computedResult = _upgrade_js2['default'].fixupComputedExpression('Expression' + anonymousComputedCounter++, expression);
       newExpression = computedResult[0];
       newDeclaration = computedResult[1];
       expressionTextNode = textNode;
@@ -413,29 +410,25 @@ function upgradeDataBoundTemplate($, template, opt_newDeclarations) {
       //   newDeclarations.push(newDeclaration);
       // }
     } else if (matchPartialExpression) {
-      var leadingString = textNode.data.substring(
-          0, matchPartialExpression.index);
-      expression = matchPartialExpression[1];
-      var trailingString = textNode.data.substring(
-          matchPartialExpression.index + matchPartialExpression[0].length);
-      textNode.data = leadingString;
-      var expressionWrappingElement = $('<span>');
-      expressionWrappingElement.text(' ');
-      expressionTextNode = expressionWrappingElement[0].children[0];
-      $(textNode).after(expressionWrappingElement);
-      if (trailingString.length > 0) {
-        expressionWrappingElement.after(trailingString);
-        allTextNodes.push(expressionWrappingElement[0].nextSibling);
-      }
+        var leadingString = textNode.data.substring(0, matchPartialExpression.index);
+        expression = matchPartialExpression[1];
+        var trailingString = textNode.data.substring(matchPartialExpression.index + matchPartialExpression[0].length);
+        textNode.data = leadingString;
+        var expressionWrappingElement = $('<span>');
+        expressionWrappingElement.text(' ');
+        expressionTextNode = expressionWrappingElement[0].children[0];
+        $(textNode).after(expressionWrappingElement);
+        if (trailingString.length > 0) {
+          expressionWrappingElement.after(trailingString);
+          allTextNodes.push(expressionWrappingElement[0].nextSibling);
+        }
 
-      computedResult = upgradeJs.fixupComputedExpression(
-          'Expression' + (anonymousComputedCounter++),
-          expression);
-      newExpression = computedResult[0];
-      newDeclaration = computedResult[1];
-    } else {
-      continue;
-    }
+        computedResult = _upgrade_js2['default'].fixupComputedExpression('Expression' + anonymousComputedCounter++, expression);
+        newExpression = computedResult[0];
+        newDeclaration = computedResult[1];
+      } else {
+        continue;
+      }
     if (newDeclarations) {
       expressionTextNode.data = '{{' + newExpression + '}}';
       if (newDeclaration) {
@@ -445,11 +438,7 @@ function upgradeDataBoundTemplate($, template, opt_newDeclarations) {
       // We're in an auto-binding template where there's nowhere to put
       // new declarations.
       if (newDeclaration) {
-        insertHtmlCommentBefore($, expressionTextNode, [
-          'This expression can\'t work in a dom-bind template, as it should',
-          'be an anonymous computed property. If you convert it into a',
-          'Polymer element then polyup should be able to upgrade it.'
-        ]);
+        insertHtmlCommentBefore($, expressionTextNode, ['This expression can\'t work in a dom-bind template, as it should', 'be an anonymous computed property. If you convert it into a', 'Polymer element then polyup should be able to upgrade it.']);
         expressionTextNode.data = '{{' + expression + '}}';
       } else {
         expressionTextNode.data = '{{' + newExpression + '}}';
@@ -457,11 +446,9 @@ function upgradeDataBoundTemplate($, template, opt_newDeclarations) {
     }
   }
 
-
   // <input value={{x}}> -> <input value={{x::input}}>
-  var inputElems = recursivelyMatchInsideTemplates(
-      $, $(template), 'input, textarea, select');
-  inputElems.forEach(function(inputElem) {
+  var inputElems = recursivelyMatchInsideTemplates($, $(template), 'input, textarea, select');
+  inputElems.forEach(function (inputElem) {
     // At this point we're guaranteed that any bound expression is either a
     // function call or a simple property binding. We don't want to match
     // function calls here, so we exclude bindings with parens.
@@ -492,15 +479,15 @@ function recursivelyMatchInsideTemplates($, elem, matcher, results) {
     results = [];
   }
   if (elem.is('template')) {
-    elem[0].children.forEach(function(child) {
+    elem[0].children.forEach(function (child) {
       recursivelyMatchInsideTemplates($, $(child), matcher, results);
     });
   }
-  elem.find(matcher).each(function(_ignored, matched) {
+  elem.find(matcher).each(function (_ignored, matched) {
     results.push(matched);
   });
-  elem.find('template').each(function(_ignored, templateElem) {
-    templateElem.children.forEach(function(child) {
+  elem.find('template').each(function (_ignored, templateElem) {
+    templateElem.children.forEach(function (child) {
       recursivelyMatchInsideTemplates($, $(child), matcher, results);
     });
   });
@@ -518,10 +505,10 @@ function findAllTextNodes(elem, results) {
   if (results == null) {
     results = [];
   }
-  elem.children.forEach(function(child) {
+  elem.children.forEach(function (child) {
     if (child.type === 'text') {
       results.push(child);
-    } else if(child.children) {
+    } else if (child.children) {
       findAllTextNodes(child, results);
     }
   });
@@ -535,12 +522,11 @@ function findAllTextNodes(elem, results) {
  * @param {TemplateElement} templateElem The template repeat element to upgrade.
  */
 function upgradeTemplateRepeat($, templateElem) {
-  var attribs = {is: 'dom-repeat'};
+  var attribs = { is: 'dom-repeat' };
   var repeatExpression = templateElem.attribs.repeat;
 
   var indexAs, itemAs, items;
-  var match = repeatExpression.match(
-      /\s*{{\s*(.*?)\s*,\s*(.*?)\s+in\s+(.*)\s*}}\s*/);
+  var match = repeatExpression.match(/\s*{{\s*(.*?)\s*,\s*(.*?)\s+in\s+(.*)\s*}}\s*/);
   if (match) {
     itemAs = match[1];
     indexAs = match[2];
@@ -555,9 +541,7 @@ function upgradeTemplateRepeat($, templateElem) {
       if (match) {
         items = match[1];
       } else {
-        console.error(
-            'Unable to parse template repeat expression: ',
-            repeatExpression);
+        console.error('Unable to parse template repeat expression: ', repeatExpression);
       }
     }
   }
@@ -571,11 +555,7 @@ function upgradeTemplateRepeat($, templateElem) {
     attribs['index-as'] = indexAs;
   }
   if (items != null && itemAs == null && indexAs == null) {
-    insertHtmlCommentBefore($, templateElem, [
-       'TODO(polyup): convert bindings inside this dom-repeat ' +
-            'instance below',
-       'from {{foo}} to {{item.foo}}'
-    ]);
+    insertHtmlCommentBefore($, templateElem, ['TODO(polyup): convert bindings inside this dom-repeat ' + 'instance below', 'from {{foo}} to {{item.foo}}']);
   }
   delete templateElem.attribs.repeat;
   for (var key in templateElem.attribs) {
@@ -601,7 +581,7 @@ function insertHtmlCommentBefore($, elem, commentLines) {
     }
   }
   var commentText = '<!--\n';
-  commentLines.forEach(function(line) {
+  commentLines.forEach(function (line) {
     if (line.charAt(line.length - 1) == ' ') {
       throw new Error('Comment ends with a space?');
     }
@@ -613,12 +593,10 @@ function insertHtmlCommentBefore($, elem, commentLines) {
 
 function upgradeGlobalCss($) {
   var cssRules = {};
-  $(upgradeCss.needsUpgradeQuerySelector).each(function(_ignored, elemNeedsUpgrade) {
-    _.extend(
-        cssRules,
-        upgradeCss.getCssRulesNeededToUpgrade($(elemNeedsUpgrade)));
+  $(_upgrade_css2['default'].needsUpgradeQuerySelector).each(function (_ignored, elemNeedsUpgrade) {
+    _lodash2['default'].extend(cssRules, _upgrade_css2['default'].getCssRulesNeededToUpgrade($(elemNeedsUpgrade)));
   });
-  if (!_.isEmpty(cssRules)) {
+  if (!_lodash2['default'].isEmpty(cssRules)) {
     var style = $('<style>');
     style.attr('is', 'custom-style');
     style.text(getCssTextGivenRules(cssRules));
@@ -630,20 +608,16 @@ function upgradeGlobalCss($) {
 }
 
 function upgradeElementCss($, polymerElement, domModule, templateElem) {
-  var cssRules = upgradeCss.getCssRulesNeededToUpgrade($(polymerElement));
+  var cssRules = _upgrade_css2['default'].getCssRulesNeededToUpgrade($(polymerElement));
   for (var selector in cssRules) {
     cssRules[':host' + selector] = cssRules[selector];
     delete cssRules[selector];
   }
-  var elemsNeedingUpgrade = recursivelyMatchInsideTemplates(
-      $, $(templateElem), upgradeCss.needsUpgradeQuerySelector);
-  elemsNeedingUpgrade.forEach(function(elemNeedsUpgrade) {
-    _.extend(
-        cssRules,
-        upgradeCss.getCssRulesNeededToUpgrade($(elemNeedsUpgrade))
-    );
+  var elemsNeedingUpgrade = recursivelyMatchInsideTemplates($, $(templateElem), _upgrade_css2['default'].needsUpgradeQuerySelector);
+  elemsNeedingUpgrade.forEach(function (elemNeedsUpgrade) {
+    _lodash2['default'].extend(cssRules, _upgrade_css2['default'].getCssRulesNeededToUpgrade($(elemNeedsUpgrade)));
   });
-  if (!_.isEmpty(cssRules)) {
+  if (!_lodash2['default'].isEmpty(cssRules)) {
     var style = $('<style>');
     style.text(getCssTextGivenRules(cssRules));
     $(domModule).prepend(style);
@@ -653,12 +627,7 @@ function upgradeElementCss($, polymerElement, domModule, templateElem) {
 }
 
 function getCssTextGivenRules(cssRules) {
-  var contents = (
-      '\n    /* TODO(polyup): For speed, consider reworking these styles ' +
-      'with .classes\n' +
-      '                     and #ids rather than [attributes].\n' +
-      '    */'
-  );
+  var contents = '\n    /* TODO(polyup): For speed, consider reworking these styles ' + 'with .classes\n' + '                     and #ids rather than [attributes].\n' + '    */';
 
   for (var selector in cssRules) {
     contents += '\n    ' + selector + ' ' + cssRules[selector];
@@ -670,7 +639,7 @@ function getCssTextGivenRules(cssRules) {
 function addHtmlImport($, pathWithinComponents) {
   // Don't add duplicate imports.
   var importExists = false;
-  $('link[rel=import][href]').each(function(_ignored, linkElem) {
+  $('link[rel=import][href]').each(function (_ignored, linkElem) {
     if (new RegExp(pathWithinComponents + '$').test(linkElem.attribs.href)) {
       importExists = true;
     }
@@ -682,7 +651,7 @@ function addHtmlImport($, pathWithinComponents) {
   // Look for either webcomponents.js or polymer.html and work out the path to
   // the components directory from there
   var pathToComponents;
-  $('link[rel=import][href], script[src]').each(function(_ignored, elem) {
+  $('link[rel=import][href], script[src]').each(function (_ignored, elem) {
     var path = elem.attribs.href || elem.attribs.src;
     var pathExtractor = /(.*)(polymer\/polymer\.html|webcomponentsjs\/webcomponents(-lite)?(\.min)?\.js)$/;
     var match = path.match(pathExtractor);
@@ -698,10 +667,7 @@ function addHtmlImport($, pathWithinComponents) {
     newImport.attr('href', pathToComponents + pathWithinComponents);
   } else {
     newImport.attr('href', pathWithinComponents);
-    insertHtmlCommentBefore($, newImport[0], [
-        'TODO(polyup): unable to infer path to components',
-        'directory. This import path is probably incomplete.'
-    ]);
+    insertHtmlCommentBefore($, newImport[0], ['TODO(polyup): unable to infer path to components', 'directory. This import path is probably incomplete.']);
   }
 }
 
