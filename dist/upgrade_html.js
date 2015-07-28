@@ -61,6 +61,7 @@ var _es6Collections = require('es6-collections');
 var _es6Collections2 = _interopRequireDefault(_es6Collections);
 
 var Set = _es6Collections2['default'].Set || global.Set;
+var Map = _es6Collections2['default'].Map || global.Map;
 // jshint +W079
 
 var Page = (function () {
