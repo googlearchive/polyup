@@ -10,192 +10,245 @@
 
 'use strict';
 
-var espree = require('espree');
-var escodegen = require('escodegen');
-var estree_walker = require('estree-walker');
-var _ = require('lodash');
-var es6Collections = require('es6-collections');
-var elementMapping = require('./element_mapping');
+var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+var _espree = require('espree');
+
+var _espree2 = _interopRequireDefault(_espree);
+
+var _escodegen = require('escodegen');
+
+var _escodegen2 = _interopRequireDefault(_escodegen);
+
+var _estreeWalker = require('estree-walker');
+
+var _estreeWalker2 = _interopRequireDefault(_estreeWalker);
+
+var _lodash = require('lodash');
+
+var _lodash2 = _interopRequireDefault(_lodash);
+
+var _es6Collections = require('es6-collections');
+
+var _es6Collections2 = _interopRequireDefault(_es6Collections);
+
+var _element_mapping = require('./element_mapping');
+
 // jshint -W079
-var Set = es6Collections.Set || global.Set;
+
+var _element_mapping2 = _interopRequireDefault(_element_mapping);
+
+var Set = _es6Collections2['default'].Set || global.Set;
 // jshint +W079
 
-function upgradeJs(jsSource, implicitAttrs, implicitHostAttrs, implicitElemName, implicitNewDeclarations, initialIndent) {
-  if (initialIndent == null) {
-    initialIndent = 0;
+var Script = (function () {
+  function Script(jsSource, elements, initialIndent) {
+    _classCallCheck(this, Script);
+
+    this.jsSource = jsSource;
+    this.elements = elements;
+    this.initialIndent = initialIndent;
+    this.modified = false;
   }
-  var ast = espree.parse(jsSource, { attachComment: true });
 
-  var polymerCalls = [];
-  estree_walker.walk(ast, {
-    enter: function enter(node) {
-      if (node.type === 'CallExpression' && node.callee.name == 'Polymer') {
-        polymerCalls.push(node);
-      }
-    }
-  });
+  _createClass(Script, [{
+    key: 'upgrade',
+    value: function upgrade(implicitElemName) {
+      var _this = this;
 
-  var implicitNameUsed = false;
+      this.ast = _espree2['default'].parse(this.jsSource, { attachComment: true });
 
-  polymerCalls.forEach(function (polyCall) {
-    var name = extractExplicitElementNameFromPolymerCall(polyCall);
-    var attrs = {};
-    var hostAttrs = {};
-    var behaviors = [];
-    var newDeclarations = [];
-    if (name == null) {
-      if (implicitElemName == null) {
-        throw new Error('Unable to determine element name in javascript. ' + 'No matching <polymer-element> found, nor was an explicit name ' + 'given.');
-      }
-      if (implicitNameUsed) {
-        throw new Error('Unable to determine element name in javascript. ' + 'Multiple calls to Polymer() found without an explicit element ' + 'name.');
-      }
-      name = implicitElemName;
-    }
-    if (implicitElemName != null && name != null && name === implicitElemName) {
-      // Yep, we're talking about the same element, use the attributes and
-      // host attributes for it!
-      attrs = implicitAttrs;
-      hostAttrs = implicitHostAttrs;
-      newDeclarations = implicitNewDeclarations || [];
-    }
-
-    var declaration = polyCall.arguments[0];
-    if (declaration == null) {
-      declaration = { type: 'ObjectExpression', properties: [] };
-      polyCall.arguments.push(declaration);
-    }
-
-    while (declaration.type === 'CallExpression') {
-      // If the call expression is Polymer.mixin or Polymer.mixin2
-      if (declaration.callee.type === 'MemberExpression') {
-        var memberExpr = declaration.callee;
-        if (memberExpr.object.name === 'Polymer' && _.contains(['mixin', 'mixin2'], memberExpr.property.name)) {
-          var mixin = declaration.arguments[1];
-          declaration = declaration.arguments[0];
-          polyCall.arguments[0] = declaration;
-          behaviors.push(mixin);
-        }
-      }
-    }
-    if (declaration.type != 'ObjectExpression') {
-      throw new Error("Unexpected kind of thing passed to Polymer() - " + declaration.type);
-    }
-
-    // Create a 'properties' block with all of the properties we've extracted
-    // from various places (the 'attributes' attribute, computed properties,
-    // observed properties, default values, etc etc).
-    migrateAttributesToPropertiesBlock(polyCall, declaration, attrs);
-
-    // hostAttributes
-    var hostAttrsProperties = [];
-    for (var key in hostAttrs) {
-      var astVal = { type: 'Literal', value: hostAttrs[key] };
-      if (astVal.value === 'true') {
-        astVal.value = true;
-      }
-      hostAttrsProperties.push({
-        type: 'Property',
-        key: { type: 'Identifier', name: key },
-        value: astVal
-      });
-    }
-    if (hostAttrsProperties.length > 0) {
-      declaration.properties.push({
-        type: 'Property',
-        key: { type: 'Identifier', name: 'hostAttributes' },
-        value: {
-          type: 'ObjectExpression',
-          properties: hostAttrsProperties
-        }
-      });
-    }
-
-    // Add behaviors
-    if (behaviors.length > 0) {
-      declaration.properties.unshift(getBehaviorsDeclaration(behaviors));
-    }
-
-    // Add the is: 'my-elem' property
-    declaration.properties.unshift({
-      type: 'Property',
-      key: { type: 'Identifier', name: 'is' },
-      value: { type: 'Literal', value: name }
-    });
-
-    // domReady -> ready
-    var domReadyBody = null;
-    declaration.properties.forEach(function (prop) {
-      if (getPropertyKeyName(prop) != 'domReady') {
-        return;
-      }
-      if (prop.value.type !== 'FunctionExpression') {
-        throw new Error('Expected the value of the `domReady` property to ' + 'be a function expression.');
-      }
-      domReadyBody = prop.value.body.body;
-    });
-    if (domReadyBody != null) {
-      var readyBody = null;
-      declaration.properties.forEach(function (prop) {
-        if (getPropertyKeyName(prop) != 'ready') {
-          return;
-        }
-        if (prop.value.type !== 'FunctionExpression') {
-          throw new Error('Expected the value of the `ready` property to ' + 'be a function expression.');
-        }
-        readyBody = prop.value.body.body;
-      });
-
-      if (readyBody == null) {
-        readyBody = [];
-        declaration.properties.push({
-          type: 'Property',
-          key: { type: 'Identifier', name: 'ready' },
-          value: { type: 'FunctionExpression', params: [], body: {
-              type: 'BlockStatement',
-              body: readyBody
-            } }
-        });
-      }
-      domReadyBody.forEach(function (expr) {
-        readyBody.push(expr);
-      });
-    }
-    declaration.properties = declaration.properties.filter(function (prop) {
-      return getPropertyKeyName(prop) != 'domReady';
-    });
-
-    var thisMethodRenames = {
-      job: 'debounce',
-      resolvePath: 'resolveUrl'
-    };
-    estree_walker.walk(declaration, {
-      enter: function enter(node) {
-
-        if (node.type === 'CallExpression') {
-          // this.job -> this.debounce and friends
-          if (node.callee.type === 'MemberExpression' && node.callee.object.type === 'ThisExpression' && node.callee.property.name in thisMethodRenames) {
-            node.callee.property.name = thisMethodRenames[node.callee.property.name];
+      var polymerCalls = [];
+      _estreeWalker2['default'].walk(this.ast, {
+        enter: function enter(node) {
+          if (node.type === 'CallExpression' && node.callee.name == 'Polymer') {
+            polymerCalls.push(node);
           }
         }
-      }
-    });
+      });
 
-    newDeclarations.forEach(function (decl) {
-      declaration.properties.push(decl);
-    });
-  });
+      var implicitNameUsed = false;
 
-  return escodegen.generate(ast, {
-    comment: true,
-    format: {
-      indent: {
-        style: '  ',
-        base: initialIndent,
-        adjustMultilineComment: true
+      polymerCalls.forEach(function (polyCall) {
+        _this.modified = true;
+        var name = extractExplicitElementNameFromPolymerCall(polyCall);
+        var attrs = {};
+        var hostAttrs = {};
+        var behaviors = [];
+        var newDeclarations = [];
+        if (name == null) {
+          if (implicitElemName == null) {
+            throw new Error('Unable to determine element name in javascript. ' + 'No matching <polymer-element> found, nor was an explicit name ' + 'given.');
+          }
+          if (implicitNameUsed) {
+            throw new Error('Unable to determine element name in javascript. ' + 'Multiple calls to Polymer() found without an explicit element ' + 'name.');
+          }
+          name = implicitElemName;
+        }
+        if (_this.elements.has(name)) {
+          var elementInfo = _this.elements.get(name);
+          attrs = elementInfo.attrs || attrs;
+          hostAttrs = elementInfo.hostAttrs || hostAttrs;
+          newDeclarations = elementInfo.newDeclarations || newDeclarations;
+        }
+
+        var declaration = polyCall.arguments[0];
+        if (declaration == null) {
+          declaration = { type: 'ObjectExpression', properties: [] };
+          polyCall.arguments.push(declaration);
+        }
+
+        while (declaration.type === 'CallExpression') {
+          // If the call expression is Polymer.mixin or Polymer.mixin2
+          if (declaration.callee.type === 'MemberExpression') {
+            var memberExpr = declaration.callee;
+            if (memberExpr.object.name === 'Polymer' && _lodash2['default'].contains(['mixin', 'mixin2'], memberExpr.property.name)) {
+              var mixin = declaration.arguments[1];
+              declaration = declaration.arguments[0];
+              polyCall.arguments[0] = declaration;
+              behaviors.push(mixin);
+            }
+          }
+        }
+        if (declaration.type != 'ObjectExpression') {
+          throw new Error("Unexpected kind of thing passed to Polymer() - " + declaration.type);
+        }
+
+        // Create a 'properties' block with all of the properties we've extracted
+        // from various places (the 'attributes' attribute, computed properties,
+        // observed properties, default values, etc etc).
+        migrateAttributesToPropertiesBlock(polyCall, declaration, attrs);
+
+        // hostAttributes
+        var hostAttrsProperties = [];
+        for (var key in hostAttrs) {
+          var astVal = { type: 'Literal', value: hostAttrs[key] };
+          if (astVal.value === 'true') {
+            astVal.value = true;
+          }
+          hostAttrsProperties.push({
+            type: 'Property',
+            key: { type: 'Identifier', name: key },
+            value: astVal
+          });
+        }
+        if (hostAttrsProperties.length > 0) {
+          declaration.properties.push({
+            type: 'Property',
+            key: { type: 'Identifier', name: 'hostAttributes' },
+            value: {
+              type: 'ObjectExpression',
+              properties: hostAttrsProperties
+            }
+          });
+        }
+
+        // Add behaviors
+        if (behaviors.length > 0) {
+          declaration.properties.unshift(getBehaviorsDeclaration(behaviors));
+        }
+
+        // Add the is: 'my-elem' property
+        declaration.properties.unshift({
+          type: 'Property',
+          key: { type: 'Identifier', name: 'is' },
+          value: { type: 'Literal', value: name }
+        });
+
+        // domReady -> ready
+        var domReadyBody = null;
+        declaration.properties.forEach(function (prop) {
+          if (getPropertyKeyName(prop) != 'domReady') {
+            return;
+          }
+          if (prop.value.type !== 'FunctionExpression') {
+            throw new Error('Expected the value of the `domReady` property to ' + 'be a function expression.');
+          }
+          domReadyBody = prop.value.body.body;
+        });
+        if (domReadyBody != null) {
+          var readyBody = null;
+          declaration.properties.forEach(function (prop) {
+            if (getPropertyKeyName(prop) != 'ready') {
+              return;
+            }
+            if (prop.value.type !== 'FunctionExpression') {
+              throw new Error('Expected the value of the `ready` property to ' + 'be a function expression.');
+            }
+            readyBody = prop.value.body.body;
+          });
+
+          if (readyBody == null) {
+            readyBody = [];
+            declaration.properties.push({
+              type: 'Property',
+              key: { type: 'Identifier', name: 'ready' },
+              value: { type: 'FunctionExpression', params: [], body: {
+                  type: 'BlockStatement',
+                  body: readyBody
+                } }
+            });
+          }
+          domReadyBody.forEach(function (expr) {
+            readyBody.push(expr);
+          });
+        }
+        declaration.properties = declaration.properties.filter(function (prop) {
+          return getPropertyKeyName(prop) != 'domReady';
+        });
+
+        var thisMethodRenames = {
+          job: 'debounce',
+          resolvePath: 'resolveUrl'
+        };
+        _estreeWalker2['default'].walk(declaration, {
+          enter: function enter(node) {
+
+            if (node.type === 'CallExpression') {
+              // this.job -> this.debounce and friends
+              if (node.callee.type === 'MemberExpression' && node.callee.object.type === 'ThisExpression' && node.callee.property.name in thisMethodRenames) {
+                node.callee.property.name = thisMethodRenames[node.callee.property.name];
+              }
+            }
+          }
+        });
+
+        newDeclarations.forEach(function (decl) {
+          declaration.properties.push(decl);
+        });
+      });
+
+      if (!this.modified) {
+        return null;
       }
+
+      return _escodegen2['default'].generate(this.ast, {
+        comment: true,
+        format: {
+          indent: {
+            style: '  ',
+            base: this.initialIndent,
+            adjustMultilineComment: true
+          }
+        }
+      });
     }
-  });
+  }]);
+
+  return Script;
+})();
+
+function upgradeJs(jsSource, elements) {
+  var implicitElemName = arguments.length <= 2 || arguments[2] === undefined ? null : arguments[2];
+  var initialIndent = arguments.length <= 3 || arguments[3] === undefined ? 0 : arguments[3];
+
+  var script = new Script(jsSource, elements, initialIndent);
+
+  return script.upgrade(implicitElemName);
 }
 
 function extractExplicitElementNameFromPolymerCall(polymerCall) {
@@ -292,7 +345,7 @@ function migrateAttributesToPropertiesBlock(polyCall, declaration, attrs) {
       typeName = typeof value.value;
       // need to turn the type name into the identifier, so 'number' -> Number
       typeName = typeName.charAt(0).toUpperCase() + typeName.substring(1);
-      if (!_.contains(['Date', 'Boolean', 'Number', 'String'], typeName)) {
+      if (!_lodash2['default'].contains(['Date', 'Boolean', 'Number', 'String'], typeName)) {
         continue;
       }
     } else {
@@ -307,7 +360,7 @@ function migrateAttributesToPropertiesBlock(polyCall, declaration, attrs) {
     if (!attr.value) {
       continue;
     }
-    if (!_.contains(['ObjectExpression', 'ArrayExpression'], attr.value.type)) {
+    if (!_lodash2['default'].contains(['ObjectExpression', 'ArrayExpression'], attr.value.type)) {
       continue;
     }
     attr.value = {
@@ -345,7 +398,7 @@ function migrateAttributesToPropertiesBlock(polyCall, declaration, attrs) {
       var observerFunctionName = observedProp.value.value;
       observerFunctionNames.add(observerFunctionName);
       attrNames.forEach(function (attrName) {
-        if (_.contains(attrName, '.') || _.contains(attrName, '[')) {
+        if (_lodash2['default'].contains(attrName, '.') || _lodash2['default'].contains(attrName, '[')) {
           // This is deeply mediocre code. We want to actually create the
           // observers.
           polyCall.leadingComments = polyCall.leadingComments || [];
@@ -483,12 +536,12 @@ function fixObserverArgumentOrder(observerFuncAst) {
 function getBehaviorsDeclaration(behaviors) {
   // Map official elements to their upgraded forms.
   behaviors = behaviors.map(function (behaviorAst) {
-    var behaviorName = escodegen.generate(behaviorAst);
-    var mappedBehavior = elementMapping[behaviorName];
+    var behaviorName = _escodegen2['default'].generate(behaviorAst);
+    var mappedBehavior = _element_mapping2['default'][behaviorName];
     if (!mappedBehavior || !mappedBehavior.name) {
       return behaviorAst;
     }
-    return espree.parse(mappedBehavior.name).body[0].expression;
+    return _espree2['default'].parse(mappedBehavior.name).body[0].expression;
   });
 
   return {
@@ -503,7 +556,7 @@ function getBehaviorsDeclaration(behaviors) {
 
 function fixupComputedExpression(attrName, expression) {
   var functionExpression = 'function x() { return (' + expression + '); }';
-  var parsed = espree.parse(functionExpression);
+  var parsed = _espree2['default'].parse(functionExpression);
   parsed = parsed.body[0].body.body[0].argument;
   var leadingComments = [];
 
@@ -550,7 +603,7 @@ function fixupComputedExpression(attrName, expression) {
   // into a function of its own and rewrite the expression to simply call that
   // function.
   var inputIdentifiers = new Set();
-  estree_walker.walk(parsed, {
+  _estreeWalker2['default'].walk(parsed, {
     enter: function enter(node, parent) {
       if (node.type === 'Identifier') {
         if (parent && parent.type === 'Property' && parent.key === node) {
@@ -604,7 +657,7 @@ function fixupComputedExpression(attrName, expression) {
       }
     }]
   };
-  var newExpression = escodegen.generate(newExpressionAst, { format: { indent: { style: '' }, newline: ' ', semicolons: false } });
+  var newExpression = _escodegen2['default'].generate(newExpressionAst, { format: { indent: { style: '' }, newline: ' ', semicolons: false } });
   return [newExpression, declarationOfExpressionFunction];
 }
 
