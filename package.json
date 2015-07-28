@@ -6,7 +6,7 @@
   "main": "lib/upgrade_html.js",
   "bin": "lib/node_main.js",
   "scripts": {
-    "test": "node_modules/.bin/jshint --verbose *.js build/*.js lib/*.js test/*.js && node_modules/.bin/mocha",
+    "test": "node_modules/.bin/jshint --verbose *.js build/*.js lib/*.es6 test/*.js && node_modules/.bin/mocha",
     "test:watch": "watch 'npm test' ./lib ./test ./build",
     "browserify": "mkdir -p ./dist/ && browserify ./lib/browser_main.js -o ./dist/browser_package.js",
     "serve": "npm run browserify && npm run deps && node serve.js",
