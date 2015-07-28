@@ -27,10 +27,10 @@
     "espree": "^2.0.3",
     "estree-walker": "rictic/estree-walker#distrib",
     "lodash": "^3.9.3",
+    "nomnom": "^1.8.1",
     "string.prototype.endswith": "^0.2.0",
     "vulcanize": "^1.9.2",
-    "whacko": "^0.18.1",
-    "yargs": "^3.12.0"
+    "whacko": "^0.18.1"
   },
   "devDependencies": {
     "browserify": "^10.2.4",
