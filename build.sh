@@ -2,6 +2,8 @@
 
 set -e
 
+mkdir -p dist/
+
 ./node_modules/.bin/babel lib/browser_main.js -o dist/browser_main.js &
 ./node_modules/.bin/babel lib/element_mapping.js -o dist/element_mapping.js &
 ./node_modules/.bin/babel lib/node_main.js -o dist/node_main.js &
