@@ -1,0 +1,11 @@
+<link rel="import" href="../polymer/polymer.html">
+
+<dom-module id="elem-1">
+</dom-module>
+
+
+
+<dom-module id="elem-2">
+</dom-module>
+<script src="multiple-elements-one-script.js"></script>
+

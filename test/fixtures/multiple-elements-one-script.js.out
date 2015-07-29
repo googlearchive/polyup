@@ -1,0 +1,8 @@
+Polymer({
+  is: 'elem-2',
+  properties: { two: { notify: true } }
+});
+Polymer({
+  is: 'elem-1',
+  properties: { one: { notify: true } }
+});
