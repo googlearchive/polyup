@@ -6,7 +6,7 @@
   "main": "dist/upgrade_html.js",
   "bin": "dist/node_main.js",
   "scripts": {
-    "test": "sh build.sh && npm run --silent lint && node_modules/.bin/mocha",
+    "test": "gulp build && npm run --silent lint && node_modules/.bin/mocha",
     "lint": "node_modules/.bin/jshint --verbose *.js build/*.js lib/*.js test/*.js",
     "test:watch": "watch 'npm test' ./lib ./test ./build",
     "browserify": "mkdir -p ./dist/ && browserify ./dist/browser_main.js -o ./dist/browser_package.js",
@@ -36,6 +36,8 @@
   "devDependencies": {
     "babel": "^5.8.12",
     "browserify": "^10.2.4",
+    "gulp": "^3.9.0",
+    "gulp-babel": "^5.1.0",
     "jshint": "^2.8.0",
     "mime": "^1.3.4",
     "mocha": "^2.2.5",
