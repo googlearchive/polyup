@@ -10,7 +10,7 @@
 
 var assert = require('assert');
 var path = require('path');
-var upgradeHtml = require('../lib/upgrade_html');
+var upgradeHtml = require('../dist/upgrade_html');
 var fs = require('fs');
 
 

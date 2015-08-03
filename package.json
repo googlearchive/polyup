@@ -3,12 +3,13 @@
   "version": "0.2.0",
   "description": "Helps you upgrade from Polymer 0.5 to 1.0!",
   "repository": "PolymerLabs/polyup",
-  "main": "lib/upgrade_html.js",
-  "bin": "lib/node_main.js",
+  "main": "dist/upgrade_html.js",
+  "bin": "dist/node_main.js",
   "scripts": {
-    "test": "node_modules/.bin/jshint --verbose *.js build/*.js lib/*.js test/*.js && node_modules/.bin/mocha",
+    "test": "gulp build && npm run --silent lint && node_modules/.bin/mocha",
+    "lint": "node_modules/.bin/jshint --verbose *.js build/*.js lib/*.js test/*.js",
     "test:watch": "watch 'npm test' ./lib ./test ./build",
-    "browserify": "mkdir -p ./dist/ && browserify ./lib/browser_main.js -o ./dist/browser_package.js",
+    "browserify": "mkdir -p ./dist/ && browserify ./dist/browser_main.js -o ./dist/browser_package.js",
     "serve": "npm run browserify && npm run deps && node serve.js",
     "deps": "npm install && bower install && cd test/bower_0.5 && bower install && cd ../bower_1.0 && bower install"
   },
@@ -33,7 +34,10 @@
     "whacko": "^0.18.1"
   },
   "devDependencies": {
+    "babel": "^5.8.12",
     "browserify": "^10.2.4",
+    "gulp": "^3.9.0",
+    "gulp-babel": "^5.1.0",
     "jshint": "^2.8.0",
     "mime": "^1.3.4",
     "mocha": "^2.2.5",

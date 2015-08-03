@@ -2,5 +2,6 @@
   "node": true,
   "unused": true,
   "eqnull": true,
+  "esnext": true,
   "predef": [ "Map", "Set" ]
 }
