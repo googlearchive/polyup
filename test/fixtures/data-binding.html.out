@@ -1,0 +1,13 @@
+<link rel="import" href="../polymer/polymer.html">
+
+<dom-module id="data-binding-test-element">
+  <template>
+    <div id="{{f(x)}}"></div>
+  </template>
+</polymer-element>
+
+<script>
+  Polymer({
+    is: 'data-binding-test-element'
+  });
+</script>
