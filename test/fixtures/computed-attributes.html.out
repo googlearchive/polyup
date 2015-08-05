@@ -4,7 +4,7 @@
   <template>
     <div id="{{x}}"></div>
     <div id="{{computeId(x)}}"></div>
-    <div class="{{computeClass(x)}}"></div>
+    <div class$="{{computeClass(x)}}"></div>
     <span>{{computeExpression1(x)}}</span>
     <template is="dom-if" if="{{x}}">
       Hi hello how <span>{{computeExpression2(x)}}</span> are you.

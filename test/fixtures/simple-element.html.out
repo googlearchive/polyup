@@ -10,11 +10,14 @@
       }
     </style>
   <template>
-    <div>Hello there</div>
+    <div for="{{strAttr}}" style$="{{computeStyle(strAttr)}}">
+      <a href$="{{computeHref(strAttr)}}">Hello there</a>
+    </div>
     <input>
-    <select value="{{strAttr::input}}">
+    <label for$="{{strAttr}}">Select one:</label>
+    <select id="{{strAttr}}" value="{{strAttr::input}}">
       <option value="1">One</option>
-      <option value="2">Two</option>
+      <option value="2" data-secret$="{{intAttr}}">Two</option>
     </select>
     <iron-ajax id="ajax"></iron-ajax>
     <template is="dom-if" if="{{boolAttr}}">
@@ -92,6 +95,12 @@
     computeUrl: function (intVal) {
       return '/api/v' + intVal + '/get';
     },
-    hostAttributes: { tabindex: '0' }
+    hostAttributes: { tabindex: '0' },
+    computeStyle: function (strAttr) {
+      return 'background-color: ' + strAttr + ';';
+    },
+    computeHref: function (strAttr) {
+      return 'http://example.com/' + strAttr;
+    }
   });
 </script>
