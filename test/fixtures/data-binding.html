@@ -3,6 +3,6 @@
 <polymer-element name='data-binding-test-element' noscript>
   <template>
     <div id='{{x | f}}'></div>
-    {{x | f}}
+    {{a+b | myFilter(2) | tokenList}}
   </template>
 </polymer-element>
