@@ -3,11 +3,9 @@
 <dom-module id="data-binding-test-element">
   <template>
     <div id="{{f(x)}}"></div>
-    {{f(x)}}
+    <span>{{f(x)}}</span>
   </template>
 </dom-module>
 <script>
-  Polymer({
-    is: 'data-binding-test-element'
-  });
+  Polymer({ is: 'data-binding-test-element' });
 </script>
