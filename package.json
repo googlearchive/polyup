@@ -23,7 +23,6 @@
   },
   "dependencies": {
     "colors": "^1.1.2",
-    "es6-collections": "^0.5.1",
     "escodegen": "^1.6.1",
     "espree": "^2.0.3",
     "estree-walker": "rictic/estree-walker#distrib",
@@ -31,10 +30,10 @@
     "nomnom": "^1.8.1",
     "string.prototype.endswith": "^0.2.0",
     "vulcanize": "^1.9.2",
-    "whacko": "^0.18.1"
+    "whacko": "^0.18.1",
+    "babel": "^5.8.12"
   },
   "devDependencies": {
-    "babel": "^5.8.12",
     "browserify": "^10.2.4",
     "gulp": "^3.9.0",
     "gulp-babel": "^5.1.0",
