@@ -15,7 +15,7 @@
     </div>
     <input>
     <label on-click="labelClicked" for$="{{strAttr}}">Select one:</label>
-    <select id="{{strAttr}}" value="{{strAttr::input}}">
+    <select id="{{strAttr}}" value="{{strAttr::input}}" hidden$="{{computeHidden(boolAttr)}}">
       <option value="1">One</option>
       <option value="2" data-secret$="{{intAttr}}">Two</option>
     </select>
@@ -101,6 +101,9 @@
     },
     computeHref: function (strAttr) {
       return 'http://example.com/' + strAttr;
+    },
+    computeHidden: function (boolAttr) {
+      return !boolAttr;
     }
   });
 </script>
