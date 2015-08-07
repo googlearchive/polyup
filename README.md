@@ -84,19 +84,19 @@ Please file bugs as you see them! See [CONTRIBUTING.md](CONTRIBUTING.md) for mor
         expressions into an anonymous computed property.
   - [x] Transforms more complicated expressions anywhere into anonymous
         computed properties.
-  - [ ] Handles expressions with filters like {{x | f}}
+  - [x] Handles expressions with filters like {{x | f}}
   - [ ] Upgrades one time bindings [[]] – probably by turning them into
         regular bindings with a warning because in 1.0 they're *one-way*
         bindings.
-  - [ ] For binding to attributes which are not properties like `class` we need
+  - [x] For binding to attributes which are not properties like `class` we need
         to use `x$="{{foo}}"` to bind to the HTML attribute.
-  - [ ] Handles bidirectional binding to common attributes of build-in elements
+  - [x] Upgrades boolean bindings like `hidden?="{{foo}}"`
+  - [x] Handles bidirectional binding to common attributes of build-in elements
     - [x] `<input value>`
     - [x] `<textarea value>`
-    - [ ] `<select value>`
+    - [x] `<select value>`
     - [ ] *Your feature request here.*
-  - [ ] May need to remove curly braces from on-* event handler attributes.
-        Investigation needed.
+  - [x] Removes curly braces from on-* event handler attributes.
 - [x] `webcomponents(.min)?.js` -> `webcomponents_lite(.min)?.js`
 - [ ] Upgrades official elements from 0.5 to 1.0 mode.
   - [x] Upgrades imports to the new element names and paths.
@@ -157,7 +157,7 @@ Please file bugs as you see them! See [CONTRIBUTING.md](CONTRIBUTING.md) for mor
 ### CSS
 - [x] Detect layout attributes in HTML and add them back in to the element's
       `<style>`.
-- [ ] Fix `<link rel='stylesheet' href='...'>`
+- [x] Fix `<link rel='stylesheet' href='...'>`
 
 ### Other
 - [ ] Upgrades bower.json?
