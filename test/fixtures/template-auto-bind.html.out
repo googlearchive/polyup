@@ -13,13 +13,14 @@
   <div>
     User says: <span>{{greeting}}</span>
   </div>
+  <!--
+      The expression {{greeting + " world"}} can't work in a
+      dom-bind template, as it should be an anonymous computed property.
+      If you convert it into a Polymer element then polyup should be able to
+      upgrade it.
+   -->
   <div>
-    This won't work in 1.0: <span><!--
-    This expression can't work in a dom-bind template, as it should
-    be an anonymous computed property. If you convert it into a
-    Polymer element then polyup should be able to upgrade it.
- -->
-{{greeting + " world"}}</span>
+    This won't work in 1.0: <span>{{greeting + " world"}}</span>
   </div>
 </template>
 

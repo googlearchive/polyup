@@ -1,0 +1,8 @@
+<link rel="import" href="../polymer/polymer.html">
+
+<polymer-element name='data-binding-test-element' noscript>
+  <template>
+    <div id='{{x | f}}'></div>
+    {{a+b | myFilter(2) | tokenList}}
+  </template>
+</polymer-element>

@@ -1,0 +1,16 @@
+<link rel="import" href="../polymer/polymer.html">
+
+<dom-module id="data-binding-test-element">
+  <template>
+    <div id="{{f(x)}}"></div>
+    <span>{{computeExpression1(a, b)}}</span>
+  </template>
+</dom-module>
+<script>
+  Polymer({
+    is: 'data-binding-test-element',
+    computeExpression1: function (a, b) {
+      return this.tokenList(this.myFilter(a + b, 2));
+    }
+  });
+</script>
