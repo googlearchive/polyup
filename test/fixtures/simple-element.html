@@ -17,7 +17,7 @@
     </div>
     <input>
     <label on-click='{{labelClicked}}' for='{{strAttr}}'>Select one:</label>
-    <select id='{{strAttr}}' value='{{strAttr}}'>
+    <select id='{{strAttr}}' value='{{strAttr}}' hidden?='{{!boolAttr}}'>
       <option value='1'>One</option>
       <option value='2' data-secret='{{intAttr}}'>Two</option>
     </select>
