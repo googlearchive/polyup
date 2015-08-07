@@ -9,6 +9,7 @@
         margin: 20px;
       }
     </style>
+  <link rel="import" type="css" href="simple-element.css">
   <template>
     <div for="{{strAttr}}" style$="{{computeStyle(strAttr)}}">
       <a href$="{{computeHref(strAttr)}}">Hello there</a>
