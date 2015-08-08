@@ -5,12 +5,12 @@
     <div id="{{f(x)}}"></div>
     <span>{{computeExpression1(a, b)}}</span>
   </template>
+  <script>
+    Polymer({
+      is: 'data-binding-test-element',
+      computeExpression1: function (a, b) {
+        return this.tokenList(this.myFilter(a + b, 2));
+      }
+    });
+  </script>
 </dom-module>
-<script>
-  Polymer({
-    is: 'data-binding-test-element',
-    computeExpression1: function (a, b) {
-      return this.tokenList(this.myFilter(a + b, 2));
-    }
-  });
-</script>

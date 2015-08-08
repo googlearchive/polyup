@@ -10,40 +10,40 @@
       Hi hello how <span>{{computeExpression2(x)}}</span> are you.
     </template>
   </template>
-</dom-module>
-<script>
-  Polymer({
-    is: 'computed-attributes-test-elem',
-    properties: {
-      identity: { computed: 'x' },
-      x: {
-        type: Number,
-        value: 1
+  <script>
+    Polymer({
+      is: 'computed-attributes-test-elem',
+      properties: {
+        identity: { computed: 'x' },
+        x: {
+          type: Number,
+          value: 1
+        },
+        y: { computed: 'computeY(x)' },
+        z: { computed: 'double(x)' },
+        zz: { computed: 'computeZz(x)' }
       },
-      y: { computed: 'computeY(x)' },
-      z: { computed: 'double(x)' },
-      zz: { computed: 'computeZz(x)' }
-    },
-    double: function (val) {
-      return val * val;
-    },
-    computeY: function (x) {
-      return x + x;
-    },
-    computeZz: function (x) {
-      return this.double(x) + this.double(x);
-    },
-    computeId: function (x) {
-      return x + x;
-    },
-    computeClass: function (x) {
-      return 'big class' + x;
-    },
-    computeExpression1: function (x) {
-      return x + x;
-    },
-    computeExpression2: function (x) {
-      return x * x;
-    }
-  });
-</script>
+      double: function (val) {
+        return val * val;
+      },
+      computeY: function (x) {
+        return x + x;
+      },
+      computeZz: function (x) {
+        return this.double(x) + this.double(x);
+      },
+      computeId: function (x) {
+        return x + x;
+      },
+      computeClass: function (x) {
+        return 'big class' + x;
+      },
+      computeExpression1: function (x) {
+        return x + x;
+      },
+      computeExpression2: function (x) {
+        return x * x;
+      }
+    });
+  </script>
+</dom-module>

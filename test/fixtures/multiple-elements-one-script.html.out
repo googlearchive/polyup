@@ -4,8 +4,6 @@
 </dom-module>
 
 
-
 <dom-module id="elem-2">
+  <script src="multiple-elements-one-script.js"></script>
 </dom-module>
-<script src="multiple-elements-one-script.js"></script>
-

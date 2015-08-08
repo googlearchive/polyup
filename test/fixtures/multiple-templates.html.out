@@ -16,12 +16,12 @@
     </template>
     So too this expression shouldn't be touched: {{2 * 2}}
   </template>
+  <script>
+    Polymer({
+      is: 'uses-multiple-templates',
+      computeExpression1: function () {
+        return 1 + 1;
+      }
+    });
+  </script>
 </dom-module>
-<script>
-  Polymer({
-    is: 'uses-multiple-templates',
-    computeExpression1: function () {
-      return 1 + 1;
-    }
-  });
-</script>

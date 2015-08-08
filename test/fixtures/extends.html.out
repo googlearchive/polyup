@@ -1,23 +1,23 @@
 <link rel="import" href="../polymer/polymer.html">
 
 <dom-module id="extends-builtin">
+  <script>
+    Polymer({
+      is: 'extends-builtin',
+      extends: 'input'
+    });
+  </script>
 </dom-module>
-<script>
-  Polymer({
-    is: 'extends-builtin',
-    extends: 'input'
-  });
-</script>
 
 <!--
     TODO(polyup): Inheriting from other custom elements is not yet supported.
     See: https://www.polymer-project.org/1.0/docs/migration.html#inheritance
  -->
 <dom-module id="extends-custom">
+  <script>
+    Polymer({
+      is: 'extends-custom',
+      extends: 'paper-input'
+    });
+  </script>
 </dom-module>
-<script>
-  Polymer({
-    is: 'extends-custom',
-    extends: 'paper-input'
-  });
-</script>
