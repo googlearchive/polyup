@@ -39,8 +39,8 @@
       return this.callOk(b, c + h);
     },
     hostAttributes: {
-      x: '1',
-      y: '2'
+      'x': '1',
+      'y': '2'
     },
     listeners: { scroll: 'scrollFunc' }
   });
