@@ -96,7 +96,7 @@
     computeUrl: function (intVal) {
       return '/api/v' + intVal + '/get';
     },
-    hostAttributes: { tabindex: '0' },
+    hostAttributes: { 'tabindex': '0' },
     computeStyle: function (strAttr) {
       return 'background-color: ' + strAttr + ';';
     },
