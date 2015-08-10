@@ -25,6 +25,9 @@
     [layout][vertical] {
       @apply(--layout-vertical);
     }
+    [layout][around-justified] {
+      @apply(--layout-around-justified);
+    }
   </style>
   <link rel="import" href="components/iron-flex-layout/iron-flex-layout.html">
 </head>
@@ -46,8 +49,8 @@
     :host[layout][vertical] {
       @apply(--layout-vertical);
     }
-    :host[layout][justified] {
-      @apply(--layout-justified);
+    :host[layout][around-justified] {
+      @apply(--layout-around-justified);
     }
     [layout] {
       @apply(--layout);
@@ -82,9 +85,9 @@
     Polymer({
       is: 'element-uses-layout',
       hostAttributes: {
-        layout: '',
-        vertical: '',
-        justified: ''
+        'layout': '',
+        'vertical': '',
+        'around-justified': ''
       }
     });
   </script>
