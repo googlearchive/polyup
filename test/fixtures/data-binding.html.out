@@ -4,11 +4,19 @@
   <template>
     <div id="{{f(x)}}"></div>
     <span>{{computeExpression1(a, b)}}</span>
+    <div title="{{computeTitle()}}"></div>
+    <div title="{{computeTitle2()}}"></div>
   </template>
 </dom-module>
 <script>
   Polymer({
     is: 'data-binding-test-element',
+    computeTitle: function () {
+      return 2 * 2;
+    },
+    computeTitle2: function () {
+      return 4 * 4;
+    },
     computeExpression1: function (a, b) {
       return this.tokenList(this.myFilter(a + b, 2));
     }
