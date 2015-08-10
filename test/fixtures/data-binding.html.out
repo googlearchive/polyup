@@ -18,6 +18,15 @@
       },
       computeExpression1: function (a, b) {
         return this.tokenList(this.myFilter(a + b, 2));
+      },
+      tokenList: function (obj) {
+        var pieces = [];
+        for (key in obj) {
+          if (obj[key]) {
+            pieces.push(key);
+          }
+        }
+        return pieces.join(' ');
       }
     });
   </script>

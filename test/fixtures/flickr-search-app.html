@@ -40,6 +40,16 @@
       }
       img {
         display: inline-block;
+        border: 5px solid black;
+      }
+      img.america {
+        border-color: blue;
+      }
+      img.britain {
+        border-color: red;
+      }
+      img.unknown {
+        border-color: gray;
       }
       label {
         display: block;
@@ -64,7 +74,7 @@
     </core-ajax>
     <paper-spinner active='{{loading}}'></paper-spinner>
     <template repeat='{{photo in response.photos.photo}}'>
-      <img src='https://farm{{photo.farm}}.staticflickr.com/{{photo.server}}/{{photo.id}}_{{photo.secret}}.jpg'>
+      <img class='{{photo | getClasses | tokenList}}' src='https://farm{{photo.farm}}.staticflickr.com/{{photo.server}}/{{photo.id}}_{{photo.secret}}.jpg'>
     </template>
     <template if='{{error}}'>
       {{error.statusCode}} Error:
@@ -74,7 +84,18 @@
   <script>
     Polymer({
       search: 'house',
-      apiKey: '5358d9830b6865a13d251e5e1acb4c30'
+      apiKey: '5358d9830b6865a13d251e5e1acb4c30',
+      getClasses: function(photo) {
+        var classes = {};
+        if (photo.title.match(/(U\.S\.|USA|America)/i)) {
+          classes['america'] = true;
+        } else if (photo.title.match(/Britain|U\.K\.|British/i)) {
+          classes['britain'] = true;
+        } else {
+          classes['unknown'] = true;
+        }
+        return classes;
+      }
     });
   </script>
 </polymer-element>
