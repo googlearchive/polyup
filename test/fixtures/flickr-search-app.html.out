@@ -49,6 +49,16 @@
       }
       img {
         display: inline-block;
+        border: 5px solid black;
+      }
+      img.america {
+        border-color: blue;
+      }
+      img.britain {
+        border-color: red;
+      }
+      img.unknown {
+        border-color: gray;
       }
       label {
         display: block;
@@ -71,7 +81,7 @@
     </iron-ajax>
     <paper-spinner active="{{loading}}"></paper-spinner>
     <template is="dom-repeat" items="{{response.photos.photo}}" as="photo">
-      <img src="{{computeSrc(photo)}}">
+      <img src="{{computeSrc(photo)}}" class$="{{computeClass(photo)}}">
     </template>
     <template is="dom-if" if="{{error}}">
       <span>{{error.statusCode}}</span> Error:
@@ -91,6 +101,17 @@
           value: 'house'
         }
       },
+      getClasses: function (photo) {
+        var classes = {};
+        if (photo.title.match(/(U\.S\.|USA|America)/i)) {
+          classes['america'] = true;
+        } else if (photo.title.match(/Britain|U\.K\.|British/i)) {
+          classes['britain'] = true;
+        } else {
+          classes['unknown'] = true;
+        }
+        return classes;
+      },
       computeParams: function (apiKey, debouncedSearch) {
         return {
           method: 'flickr.photos.search',
@@ -101,8 +122,20 @@
           nojsoncallback: 1
         };
       },
+      computeClass: function (photo) {
+        return this.tokenList(this.getClasses(photo));
+      },
       computeSrc: function (photo) {
         return 'https://farm' + photo.farm + '.staticflickr.com/' + photo.server + '/' + photo.id + '_' + photo.secret + '.jpg';
+      },
+      tokenList: function (obj) {
+        var pieces = [];
+        for (key in obj) {
+          if (obj[key]) {
+            pieces.push(key);
+          }
+        }
+        return pieces.join(' ');
       }
     });
   </script>
