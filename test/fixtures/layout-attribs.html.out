@@ -81,17 +81,17 @@
     <div>Bottom</div>
     <div fit="" hidden="">Imhotep</div>
   </template>
+  <script>
+    Polymer({
+      is: 'element-uses-layout',
+      hostAttributes: {
+        'layout': '',
+        'vertical': '',
+        'around-justified': ''
+      }
+    });
+  </script>
 </dom-module>
-<script>
-  Polymer({
-    is: 'element-uses-layout',
-    hostAttributes: {
-      'layout': '',
-      'vertical': '',
-      'around-justified': ''
-    }
-  });
-</script>
 
 <element-uses-layout class="thing"></element-uses-layout>
 

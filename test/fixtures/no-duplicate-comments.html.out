@@ -1,18 +1,18 @@
 <link rel="import" href="../polymer/polymer.html">
 
 <dom-module id="duplicate-comments">
+  <script>
+    Polymer({
+      is: 'duplicate-comments',
+      ready: function () {
+        // Ready function.
+        var ready = true;
+        /* This is an example block comment which is intended
+         * to refer to the block of code below. */
+        var bar = 2;
+        // This is a line comment which refers to the block below.
+        var baz = 3;
+      }
+    });
+  </script>
 </dom-module>
-<script>
-  Polymer({
-    is: 'duplicate-comments',
-    ready: function () {
-      // Ready function.
-      var ready = true;
-      /* This is an example block comment which is intended
-       * to refer to the block of code below. */
-      var bar = 2;
-      // This is a line comment which refers to the block below.
-      var baz = 3;
-    }
-  });
-</script>

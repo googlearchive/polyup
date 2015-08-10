@@ -17,7 +17,7 @@
       <span>{{a}}</span> Good
     </template>
   </template>
+  <script>
+    Polymer({ is: 'uses-lots-of-template-repeats' });
+  </script>
 </dom-module>
-<script>
-  Polymer({ is: 'uses-lots-of-template-repeats' });
-</script>

@@ -7,13 +7,13 @@
 <body>
 
 <dom-module id="resizable-thing">
+  <script>
+    Polymer({
+      is: 'resizable-thing',
+      behaviors: [Polymer.IronResizableBehavior]
+    });
+  </script>
 </dom-module>
-<script>
-  Polymer({
-    is: 'resizable-thing',
-    behaviors: [Polymer.IronResizableBehavior]
-  });
-</script>
 <resizable-thing></resizable-thing>
 
 

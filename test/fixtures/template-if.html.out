@@ -13,7 +13,7 @@
       <span>Good</span>
     </template>
   </template>
+  <script>
+    Polymer({ is: 'uses-lots-of-template-ifs' });
+  </script>
 </dom-module>
-<script>
-  Polymer({ is: 'uses-lots-of-template-ifs' });
-</script>

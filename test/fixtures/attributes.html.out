@@ -1,14 +1,14 @@
 <link rel="import" href="../polymer/polymer.html">
 
 <dom-module id="attributes-element">
+  <script>
+    Polymer({
+      is: 'attributes-element',
+      properties: {
+        a: { notify: true },
+        b: { notify: true },
+        c: { notify: true }
+      }
+    });
+  </script>
 </dom-module>
-<script>
-  Polymer({
-    is: 'attributes-element',
-    properties: {
-      a: { notify: true },
-      b: { notify: true },
-      c: { notify: true }
-    }
-  });
-</script>

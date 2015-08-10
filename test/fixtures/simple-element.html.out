@@ -28,83 +28,83 @@
       <div>Yes <span>{{intAttr}}</span> times I tell you <span>{{strAttr}}</span>.</div>
     </template>
   </template>
+  <script>
+    // this is a comment
+    //TODO(polyup): Need to add an observer of z.v.k, calling somethingsUp.
+    //Note that the semantics for observing properties and arrays has changed.
+    Polymer({
+      is: 'simple-element',
+      properties: {
+        arrayAttr: {
+          type: Array,
+          value: function () {
+            return [];
+          },
+          notify: true
+        },
+        auto: { computed: 'shouldAuto(intVal, boolVal)' },
+        boolAttr: {
+          type: Boolean,
+          value: false,
+          notify: true,
+          observer: 'boolAttrChanged'
+        },
+        /**
+         * The most important attribute in the world.
+         */
+        intAttr: {
+          type: Number,
+          value: 0,
+          notify: true,
+          observer: 'somethingsUp',
+          reflectToAttribute: true
+        },
+        objAttr: {
+          type: Object,
+          value: function () {
+            return {};
+          },
+          notify: true
+        },
+        params: { computed: 'computeParams(boolVal, intVal)' },
+        url: { computed: 'computeUrl(intVal)' },
+        x: { observer: 'somethingsUp' }
+      },
+      ready: function () {
+        console.log('ready!');
+        console.log('dom is ready!');
+      },
+      boolAttrChanged: function (newVal, oldVal) {
+        console.log('changed from ', oldVal, ' to ', newVal);
+      },
+      somethingsUp: function (_, oldVal) {
+        console.log('something changed from', oldVal);
+      },
+      shouldAuto: function (intVal, boolVal) {
+        return intVal + boolVal;
+      },
+      isGood: function (intVal) {
+        return intVal > 1;
+      },
+      computeParams: function (boolVal, intVal) {
+        return {
+          ok: boolVal,
+          good: this.isGood(intVal)
+        };
+      },
+      computeUrl: function (intVal) {
+        return '/api/v' + intVal + '/get';
+      },
+      hostAttributes: { 'tabindex': '0' },
+      computeStyle: function (strAttr) {
+        return 'background-color: ' + strAttr + ';';
+      },
+      computeHref: function (strAttr) {
+        return 'http://example.com/' + strAttr;
+      },
+      computeHidden: function (boolAttr) {
+        return !boolAttr;
+      }
+    });
+  </script>
 </dom-module>
-<script>
-  // this is a comment
-  //TODO(polyup): Need to add an observer of z.v.k, calling somethingsUp.
-  //Note that the semantics for observing properties and arrays has changed.
-  Polymer({
-    is: 'simple-element',
-    properties: {
-      arrayAttr: {
-        type: Array,
-        value: function () {
-          return [];
-        },
-        notify: true
-      },
-      auto: { computed: 'shouldAuto(intVal, boolVal)' },
-      boolAttr: {
-        type: Boolean,
-        value: false,
-        notify: true,
-        observer: 'boolAttrChanged'
-      },
-      /**
-       * The most important attribute in the world.
-       */
-      intAttr: {
-        type: Number,
-        value: 0,
-        notify: true,
-        observer: 'somethingsUp',
-        reflectToAttribute: true
-      },
-      objAttr: {
-        type: Object,
-        value: function () {
-          return {};
-        },
-        notify: true
-      },
-      params: { computed: 'computeParams(boolVal, intVal)' },
-      url: { computed: 'computeUrl(intVal)' },
-      x: { observer: 'somethingsUp' }
-    },
-    ready: function () {
-      console.log('ready!');
-      console.log('dom is ready!');
-    },
-    boolAttrChanged: function (newVal, oldVal) {
-      console.log('changed from ', oldVal, ' to ', newVal);
-    },
-    somethingsUp: function (_, oldVal) {
-      console.log('something changed from', oldVal);
-    },
-    shouldAuto: function (intVal, boolVal) {
-      return intVal + boolVal;
-    },
-    isGood: function (intVal) {
-      return intVal > 1;
-    },
-    computeParams: function (boolVal, intVal) {
-      return {
-        ok: boolVal,
-        good: this.isGood(intVal)
-      };
-    },
-    computeUrl: function (intVal) {
-      return '/api/v' + intVal + '/get';
-    },
-    hostAttributes: { 'tabindex': '0' },
-    computeStyle: function (strAttr) {
-      return 'background-color: ' + strAttr + ';';
-    },
-    computeHref: function (strAttr) {
-      return 'http://example.com/' + strAttr;
-    },
-    computeHidden: function (boolAttr) {
-      return !boolAttr;
-    }
-  });
-</script>
