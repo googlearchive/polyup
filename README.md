@@ -74,7 +74,7 @@ Please file bugs as you see them! See [CONTRIBUTING.md](CONTRIBUTING.md) for mor
 - [x] Upgrades `<template is='auto-binding'>`
   - [x] Adds a warning for expressions that are too complex for
         `<template is='dom-bind'>`
-- [ ] Upgrades all template data binding expressions.
+- [x] Upgrades all template data binding expressions.
   - [x] Doesn't touch expressions made up only of identifiers, property
         accesses, or expressions that are just a function call with arguments
         made of identifiers and property accesses.
@@ -85,9 +85,7 @@ Please file bugs as you see them! See [CONTRIBUTING.md](CONTRIBUTING.md) for mor
   - [x] Transforms more complicated expressions anywhere into anonymous
         computed properties.
   - [x] Handles expressions with filters like {{x | f}}
-  - [ ] Upgrades one time bindings [[]] – probably by turning them into
-        regular bindings with a warning because in 1.0 they're *one-way*
-        bindings.
+  - [x] Upgrades one time bindings [[]] to their best equivilent.
   - [x] For binding to attributes which are not properties like `class` we need
         to use `x$="{{foo}}"` to bind to the HTML attribute.
   - [x] Upgrades boolean bindings like `hidden?="{{foo}}"`
@@ -95,8 +93,8 @@ Please file bugs as you see them! See [CONTRIBUTING.md](CONTRIBUTING.md) for mor
     - [x] `<input value>`
     - [x] `<textarea value>`
     - [x] `<select value>`
-    - [ ] *Your feature request here.*
   - [x] Removes curly braces from on-* event handler attributes.
+  - [x] Upgrades expressions using `tokenList`
 - [x] `webcomponents(.min)?.js` -> `webcomponents_lite(.min)?.js`
 - [ ] Upgrades official elements from 0.5 to 1.0 mode.
   - [x] Upgrades imports to the new element names and paths.
@@ -160,5 +158,5 @@ Please file bugs as you see them! See [CONTRIBUTING.md](CONTRIBUTING.md) for mor
 - [x] Fix `<link rel='stylesheet' href='...'>`
 
 ### Other
-- [ ] Upgrades bower.json?
+- [ ] Upgrades bower.json
 
