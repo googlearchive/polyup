@@ -590,6 +590,8 @@ var Page = (function () {
 
     this.filename = _path2['default'].resolve(filename);
     this.toIgnore = options.toIgnore || new Set();
+    this.webserverRoot = options.webserverRoot;
+    this.componentsPath = options.componentsPath;
     this.modified = false;
     this.results = {};
     this.upgradedScriptElems = new Set();
@@ -630,7 +632,8 @@ var Page = (function () {
           attrs: {},
           hostAttrs: {},
           listeners: {},
-          newDeclarations: []
+          newDeclarations: [],
+          polyfillTokenList: false
         };
         _this.elements.set(elemName, elementMetadata);
 
@@ -725,18 +728,19 @@ var Page = (function () {
           _this.$(polyElem).append(newScript);
         }
 
-        _this.upgradeDataBoundTemplate(template, elementMetadata.newDeclarations);
+        _this.upgradeDataBoundTemplate(template, elementMetadata);
 
         // Upgrade the js
         _this.$('script', polyElem).each(function (_ignored, scriptElem) {
           _this.scriptElementsToCustomElements.set(scriptElem, elemName);
           // Move the script after the polymer-element.
-          _this.$(polyElem).after(scriptElem);
+          domModule.append('  ');
+          domModule.append(scriptElem);
+          domModule.append('\n');
         });
 
         // Replace the <polymer-element> with our shiny new <dom-module>
         _this.$(polyElem).replaceWith(domModule);
-        domModule.after('\n');
       });
 
       // webcomponents.js -> webcomponents-lite.js
@@ -858,17 +862,14 @@ var Page = (function () {
      * 1.0.
      *
      * @param {TemplateElement} template The template element to upgrade.
-     * @param {?Array<Object>} opt_newDeclarations An array to put new function
-     *     declarations into. If not given, then it assumes that we're in an auto-
-     *     binding template, and adds HTML comments warning if any expressions
-     *     require functionality moved into a computed expression declaration.
+     * @param {?Array<Object>} elementMetadata The metadata we're tracking for
+     *     the associated element for this template, if any.
      */
   }, {
     key: 'upgradeDataBoundTemplate',
-    value: function upgradeDataBoundTemplate(template, opt_newDeclarations) {
+    value: function upgradeDataBoundTemplate(template, elementMetadata) {
       var _this4 = this;
 
-      var newDeclarations = opt_newDeclarations;
       // Upgrade <template if>
       var templateIfs = this.recursivelyMatchInsideTemplates(template, 'template[if]');
       templateIfs.forEach(function (templateIf) {
@@ -889,10 +890,10 @@ var Page = (function () {
         if (!declaration) {
           return;
         }
-        if (newDeclarations) {
-          newDeclarations.push(declaration);
+        if (elementMetadata) {
+          elementMetadata.newDeclarations.push(declaration);
         } else {
-          _this4.insertHtmlCommentBefore(node, ['The expression {{' + expression + '}} can\'t work in a', 'dom-bind template, as it should be an anonymous computed property.', 'If you convert it into a Polymer element then polyup should be ' + 'able to', 'upgrade it.']);
+          _this4.insertHtmlCommentBefore(node, ['The expression   ' + expression + '   can\'t work in a', 'dom-bind template, as it should be an anonymous computed property.', 'If you convert it into a Polymer element then polyup should be ' + 'able to', 'upgrade it.']);
         }
       };
 
@@ -903,7 +904,8 @@ var Page = (function () {
         if (!node.attribs) {
           return;
         }
-        for (var attrName in node.attribs) {
+
+        var _loop = function () {
           var attribValue = node.attribs[attrName];
           // Handle event handler attributes specially.
           if (attrName.match(/^on-/)) {
@@ -912,26 +914,26 @@ var Page = (function () {
               node.attribs[attrName] = match[1];
             }
             // Otherwise don't mess with event handler attributes.
-            continue;
+            return 'continue';
           }
           var pieces = _this4.matchExpressions(attribValue);
           //  Empty string. Nothing to do.
           if (pieces.length === 0) {
-            continue;
+            return 'continue';
           }
           //  No expressions found. Nothing to do.
           if (pieces.length === 1 && 'string' in pieces[0]) {
-            continue;
+            return 'continue';
           }
           // Join the expressions and their in-between string bits into a single
           // string concat expression.
           var expressions = [];
-          var _iteratorNormalCompletion = true;
-          var _didIteratorError = false;
-          var _iteratorError = undefined;
+          _iteratorNormalCompletion = true;
+          _didIteratorError = false;
+          _iteratorError = undefined;
 
           try {
-            for (var _iterator = pieces[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+            for (_iterator = pieces[Symbol.iterator](); !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
               var piece = _step.value;
 
               if ('string' in piece) {
@@ -956,7 +958,11 @@ var Page = (function () {
             }
           }
 
+          var shouldOneWayBind = pieces.length === 1 && pieces[0].isOneTime;
           var expression = expressions.join(' + ');
+          if (elementMetadata && expression.match(/tokenList/)) {
+            elementMetadata.polyfillTokenList = true;
+          }
 
           if (shouldConvertToAttributeBinding(attrName, node)) {
             var tempVal = node.attribs[attrName];
@@ -966,19 +972,47 @@ var Page = (function () {
             node.attribs[attrName] = tempVal;
           }
 
-          var _upgradeJs$fixupComputedExpression = _upgrade_js2['default'].fixupComputedExpression(attrName, expression);
+          var _upgradeJs$fixupComputedExpression = _upgrade_js2['default'].fixupComputedExpression(expression);
 
           var _upgradeJs$fixupComputedExpression2 = _slicedToArray(_upgradeJs$fixupComputedExpression, 2);
 
-          var newExpression = _upgradeJs$fixupComputedExpression2[0];
+          var namer = _upgradeJs$fixupComputedExpression2[0];
           var newDeclaration = _upgradeJs$fixupComputedExpression2[1];
 
           addNewDeclaration(newDeclaration, expression, node);
-          if (newDeclarations) {
-            node.attribs[attrName] = '{{' + newExpression + '}}';
+          if (elementMetadata && newDeclaration) {
+            newDeclaration.rename = function (newName) {
+              var newExpression = namer(newName);
+              var expr = '{{' + newExpression + '}}';
+              if (shouldOneWayBind) {
+                expr = '[[' + newExpression + ']]';
+              }
+              node.attribs[attrName] = expr;
+            };
+            var computedFunctionName = 'compute' + attrName.charAt(0).toUpperCase() + attrName.substring(1);
+            computedFunctionName = computedFunctionName.replace('$', '').replace('?', '');
+            newDeclaration.rename(computedFunctionName);
           } else {
-            node.attribs[attrName] = '{{' + expression + '}}';
+            var expr = '{{' + expression + '}}';
+            if (shouldOneWayBind) {
+              expr = '[[' + expression + ']]';
+            }
+            node.attribs[attrName] = expr;
           }
+        };
+
+        for (var attrName in node.attribs) {
+          var _iteratorNormalCompletion;
+
+          var _didIteratorError;
+
+          var _iteratorError;
+
+          var _iterator, _step;
+
+          var _ret = _loop();
+
+          if (_ret === 'continue') continue;
         }
       });
 
@@ -1006,22 +1040,38 @@ var Page = (function () {
           var _iteratorError3 = undefined;
 
           try {
-            for (var _iterator3 = pieces[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+            var _loop2 = function () {
               var piece = _step3.value;
 
               if ('expression' in piece) {
-                var _upgradeJs$fixupComputedExpression3 = _upgrade_js2['default'].fixupComputedExpression('Expression' + counter++, piece.expression);
+                (function () {
+                  if (elementMetadata && piece.expression.match(/tokenList/)) {
+                    elementMetadata.polyfillTokenList = true;
+                  }
 
-                var _upgradeJs$fixupComputedExpression32 = _slicedToArray(_upgradeJs$fixupComputedExpression3, 2);
+                  var _upgradeJs$fixupComputedExpression3 = _upgrade_js2['default'].fixupComputedExpression(piece.expression);
 
-                var newExpression = _upgradeJs$fixupComputedExpression32[0];
-                var newDeclaration = _upgradeJs$fixupComputedExpression32[1];
+                  var _upgradeJs$fixupComputedExpression32 = _slicedToArray(_upgradeJs$fixupComputedExpression3, 2);
 
-                addNewDeclaration(newDeclaration, piece.expression, textNode.parent);
-                if (newDeclarations) {
-                  piece.expression = newExpression;
-                }
+                  var namer = _upgradeJs$fixupComputedExpression32[0];
+                  var newDeclaration = _upgradeJs$fixupComputedExpression32[1];
+
+                  if (newDeclaration) {
+                    newDeclaration.rename = function (newName) {
+                      var newExpression = namer(newName);
+                      if (elementMetadata) {
+                        piece.expression = newExpression;
+                      }
+                    };
+                    newDeclaration.rename('computeExpression' + counter++);
+                    addNewDeclaration(newDeclaration, piece.expression, textNode.parent);
+                  }
+                })();
               }
+            };
+
+            for (var _iterator3 = pieces[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+              _loop2();
             }
             // Expression takes up entire text node.
           } catch (err) {
@@ -1110,7 +1160,11 @@ var Page = (function () {
     key: 'matchExpressions',
     value: function matchExpressions(str) {
       function matchFirstExpression(str) {
-        var match = str.match(/\{\{(.+?)\}\}/);
+        var match = str.match(/\[\[(.+?)\]\]/);
+        var isOneTime = !!match;
+        if (!match) {
+          match = str.match(/\{\{(.+?)\}\}/);
+        }
         if (!match) {
           return null;
         }
@@ -1149,7 +1203,7 @@ var Page = (function () {
 
         var leadingString = str.substring(0, match.index);
         var trailingString = str.substring(match.index + match[0].length);
-        return { leadingString: leadingString, expression: expression, trailingString: trailingString };
+        return { leadingString: leadingString, expression: expression, trailingString: trailingString, isOneTime: isOneTime };
       }
       var pieces = [];
       while (true) {
@@ -1163,11 +1217,12 @@ var Page = (function () {
         var leadingString = matched.leadingString;
         var expression = matched.expression;
         var trailingString = matched.trailingString;
+        var isOneTime = matched.isOneTime;
 
         if (leadingString) {
           pieces.push({ string: leadingString });
         }
-        pieces.push({ expression: expression });
+        pieces.push({ expression: expression, isOneTime: isOneTime });
         str = trailingString;
       }
       return pieces;
@@ -1190,10 +1245,16 @@ var Page = (function () {
     value: function upgradeScriptElement(scriptElem, implicitElemName) {
       if ('src' in scriptElem.attribs) {
         var srcPath = scriptElem.attribs.src;
-        if (_vulcanizeLibPathresolver2['default'].prototype.isAbsoluteUrl(srcPath)) {
+        var pathToScriptElem = undefined;
+        if (this.webserverRoot && srcPath.startsWith('/') && !srcPath.startsWith('//')) {
+          pathToScriptElem = _path2['default'].resolve(_path2['default'].join(this.webserverRoot, srcPath));
+        } else if (_vulcanizeLibPathresolver2['default'].prototype.isAbsoluteUrl(srcPath)) {
+          // Skip other absolute URLs, they're things like http://ok.com/jquery.js
           return;
+        } else {
+          pathToScriptElem = _path2['default'].resolve(_path2['default'].dirname(this.filename), srcPath);
         }
-        var pathToScriptElem = _path2['default'].resolve(_path2['default'].dirname(this.filename), srcPath);
+
         if (this.toIgnore.has(pathToScriptElem)) {
           return;
         }
@@ -1209,10 +1270,10 @@ var Page = (function () {
           this.results[pathToScriptElem] = upgradedJs + '\n';
         }
       } else {
-        var upgradedJs = (0, _upgrade_js2['default'])(this.$(scriptElem).text(), this.elements, implicitElemName, 1);
+        var upgradedJs = (0, _upgrade_js2['default'])(this.$(scriptElem).text(), this.elements, implicitElemName, 2);
         if (upgradedJs) {
           this.modified = true;
-          this.$(scriptElem).text('\n' + upgradedJs + '\n');
+          this.$(scriptElem).text('\n' + upgradedJs + '\n  ');
         }
       }
     }
@@ -1354,6 +1415,7 @@ var Page = (function () {
           pathToComponents = match[1];
         }
       });
+      pathToComponents = this.componentsPath || pathToComponents;
       var newImport = this.$('<link>').attr('rel', 'import');
       this.$('head').append('  ');
       this.$('head').append(newImport);
@@ -1446,6 +1508,8 @@ module.exports = upgradeHtml;
 
 'use strict';
 
+var _slicedToArray = (function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i['return']) _i['return'](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError('Invalid attempt to destructure non-iterable instance'); } }; })();
+
 var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
@@ -1489,10 +1553,12 @@ var Script = (function () {
   _createClass(Script, [{
     key: 'upgrade',
     value: function upgrade() {
-      this.ast = _espree2['default'].parse(this.jsSource, { attachComment: true });
+      var ast = _espree2['default'].parse(this.jsSource, { attachComment: true });
+
+      removeDuplicateComments(ast);
 
       var polymerCalls = [];
-      _estreeWalker2['default'].walk(this.ast, {
+      _estreeWalker2['default'].walk(ast, {
         enter: function enter(node) {
           if (node.type === 'CallExpression' && node.callee.name == 'Polymer') {
             polymerCalls.push(node);
@@ -1506,7 +1572,7 @@ var Script = (function () {
         return null;
       }
 
-      return _escodegen2['default'].generate(this.ast, {
+      return _escodegen2['default'].generate(ast, {
         comment: true,
         format: {
           indent: {
@@ -1540,8 +1606,9 @@ var Script = (function () {
         }
         name = this.implicitElemName;
       }
+      var elementInfo = {};
       if (this.elements.has(name)) {
-        var elementInfo = this.elements.get(name);
+        elementInfo = this.elements.get(name);
         attrs = elementInfo.attrs || attrs;
         hostAttrs = elementInfo.hostAttrs || hostAttrs;
         newDeclarations = elementInfo.newDeclarations || newDeclarations;
@@ -1584,7 +1651,7 @@ var Script = (function () {
         }
         hostAttrsProperties.push({
           type: 'Property',
-          key: { type: 'Identifier', name: key },
+          key: { type: 'Literal', value: key },
           value: astVal
         });
       }
@@ -1631,46 +1698,7 @@ var Script = (function () {
       });
 
       // domReady -> ready
-      var domReadyBody = null;
-      declaration.properties.forEach(function (prop) {
-        if (getPropertyKeyName(prop) != 'domReady') {
-          return;
-        }
-        if (prop.value.type !== 'FunctionExpression') {
-          throw new Error('Expected the value of the `domReady` property to ' + 'be a function expression.');
-        }
-        domReadyBody = prop.value.body.body;
-      });
-      if (domReadyBody != null) {
-        var readyBody = null;
-        declaration.properties.forEach(function (prop) {
-          if (getPropertyKeyName(prop) != 'ready') {
-            return;
-          }
-          if (prop.value.type !== 'FunctionExpression') {
-            throw new Error('Expected the value of the `ready` property to ' + 'be a function expression.');
-          }
-          readyBody = prop.value.body.body;
-        });
-
-        if (readyBody == null) {
-          readyBody = [];
-          declaration.properties.push({
-            type: 'Property',
-            key: { type: 'Identifier', name: 'ready' },
-            value: { type: 'FunctionExpression', params: [], body: {
-                type: 'BlockStatement',
-                body: readyBody
-              } }
-          });
-        }
-        domReadyBody.forEach(function (expr) {
-          readyBody.push(expr);
-        });
-      }
-      declaration.properties = declaration.properties.filter(function (prop) {
-        return getPropertyKeyName(prop) != 'domReady';
-      });
+      this.migrateDomReadyToReady(declaration);
 
       var thisMethodRenames = {
         job: 'debounce',
@@ -1688,8 +1716,104 @@ var Script = (function () {
         }
       });
 
+      var declarationNames = new Set();
+      var getDeclName = function getDeclName(decl) {
+        return decl.key.name || decl.key.value;
+      };
+      var _iteratorNormalCompletion = true;
+      var _didIteratorError = false;
+      var _iteratorError = undefined;
+
+      try {
+        for (var _iterator = declaration.properties[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+          var decl = _step.value;
+
+          declarationNames.add(getDeclName(decl));
+        }
+      } catch (err) {
+        _didIteratorError = true;
+        _iteratorError = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion && _iterator['return']) {
+            _iterator['return']();
+          }
+        } finally {
+          if (_didIteratorError) {
+            throw _iteratorError;
+          }
+        }
+      }
+
       newDeclarations.forEach(function (decl) {
+        while (decl.rename && declarationNames.has(getDeclName(decl))) {
+          var _name = getDeclName(decl);
+          var match = _name.match(/^(.*)(\d+)$/);
+          var newName = undefined;
+          if (!match) {
+            newName = _name + '2';
+          } else {
+            newName = match[1] + (parseInt(match[2], 10) + 1);
+          }
+          decl.rename(newName);
+        }
+        declarationNames.add(getDeclName(decl));
         declaration.properties.push(decl);
+      });
+
+      if (elementInfo.polyfillTokenList) {
+        var ast = _espree2['default'].parse('\n        (function (obj) {\n          var pieces = [];\n          for (key in obj) {\n            if (obj[key]) {\n              pieces.push(key);\n            }\n          }\n          return pieces.join(\' \');\n        })\n      ');
+        declaration.properties.push({
+          type: 'Property',
+          key: { type: 'Identifier', name: 'tokenList' },
+          value: ast.body[0].expression
+        });
+      }
+    }
+  }, {
+    key: 'migrateDomReadyToReady',
+    value: function migrateDomReadyToReady(declaration) {
+      var domReadyBody = null;
+      declaration.properties.forEach(function (prop) {
+        if (getPropertyKeyName(prop) != 'domReady') {
+          return;
+        }
+        if (prop.value.type !== 'FunctionExpression') {
+          throw new Error('Expected the value of the `domReady` property to ' + 'be a function expression.');
+        }
+        domReadyBody = prop.value.body.body;
+      });
+      if (!domReadyBody) {
+        return;
+      }
+
+      var readyBody = null;
+      declaration.properties.forEach(function (prop) {
+        if (getPropertyKeyName(prop) != 'ready') {
+          return;
+        }
+        if (prop.value.type !== 'FunctionExpression') {
+          throw new Error('Expected the value of the `ready` property to ' + 'be a function expression.');
+        }
+        readyBody = prop.value.body.body;
+      });
+
+      if (readyBody == null) {
+        readyBody = [];
+        declaration.properties.push({
+          type: 'Property',
+          key: { type: 'Identifier', name: 'ready' },
+          value: { type: 'FunctionExpression', params: [], body: {
+              type: 'BlockStatement',
+              body: readyBody
+            } }
+        });
+      }
+      domReadyBody.forEach(function (expr) {
+        readyBody.push(expr);
+      });
+      declaration.properties = declaration.properties.filter(function (prop) {
+        return getPropertyKeyName(prop) != 'domReady';
       });
     }
   }]);
@@ -1894,12 +2018,23 @@ function migrateAttributesToPropertiesBlock(polyCall, declaration, attrs) {
         throw new Error("Expected the expression value of computed property " + computedPropName + " to be a string.");
       }
       var computedExpression = computedProp.value.value;
-      var fixupResult = fixupComputedExpression(computedPropName, computedExpression);
-      var newComputedExpression = fixupResult[0];
-      var newDeclaration = fixupResult[1];
+
+      var _fixupComputedExpression = fixupComputedExpression(computedExpression);
+
+      var _fixupComputedExpression2 = _slicedToArray(_fixupComputedExpression, 2);
+
+      var namer = _fixupComputedExpression2[0];
+      var newDeclaration = _fixupComputedExpression2[1];
+
       attrs[computedPropName] = attrs[computedPropName] || { name: computedPropName };
-      attrs[computedPropName].computed = { type: 'Literal', value: newComputedExpression };
+      var renameFn = function renameFn(name) {
+        var newComputedExpression = namer(name);
+        attrs[computedPropName].computed = {
+          type: 'Literal', value: newComputedExpression };
+      };
+      renameFn('compute' + computedPropName.charAt(0).toUpperCase() + computedPropName.slice(1));
       if (newDeclaration) {
+        newDeclaration.rename = renameFn;
         newComputedFunctions.push(newDeclaration);
       }
     });
@@ -2008,7 +2143,7 @@ function getBehaviorsDeclaration(behaviors) {
   };
 }
 
-function fixupComputedExpression(attrName, expression) {
+function fixupComputedExpression(expression) {
   var functionExpression = 'function x() { return (' + expression + '); }';
   var parsed = _espree2['default'].parse(functionExpression);
   parsed = parsed.body[0].body.body[0].argument;
@@ -2041,7 +2176,9 @@ function fixupComputedExpression(attrName, expression) {
   // An expression that's just an identifier or member expression, or that's
   // a simple function call on the same can be left as it is.
   if (isObservable(parsed)) {
-    return [expression, null];
+    return [function () {
+      return expression;
+    }, null];
   }
   if (parsed.type === 'CallExpression') {
     var allArgumentsAreObservable = true;
@@ -2049,7 +2186,9 @@ function fixupComputedExpression(attrName, expression) {
       allArgumentsAreObservable = allArgumentsAreObservable && isObservable(arg);
     });
     if (allArgumentsAreObservable) {
-      return [expression, null];
+      return [function () {
+        return expression;
+      }, null];
     }
   }
 
@@ -2086,11 +2225,10 @@ function fixupComputedExpression(attrName, expression) {
   var computedIdentifiers = computedArgs.map(function (argName) {
     return { type: 'Identifier', name: argName };
   });
-  var externalComputedFunctionName = 'compute' + attrName.charAt(0).toUpperCase() + attrName.substring(1);
-  externalComputedFunctionName = externalComputedFunctionName.replace('$', '').replace('?', '');
+
   var declarationOfExpressionFunction = {
     type: 'Property',
-    key: { type: 'Identifier', name: externalComputedFunctionName },
+    key: { type: 'Identifier', name: 'placeholderMustCallRename' },
     value: {
       type: 'FunctionExpression', id: null, params: computedIdentifiers,
       body: {
@@ -2107,13 +2245,66 @@ function fixupComputedExpression(attrName, expression) {
       type: 'ExpressionStatement',
       expression: {
         type: 'CallExpression',
-        callee: { type: 'Identifier', name: externalComputedFunctionName },
+        callee: { type: 'Identifier', name: 'placeholderMustCallRename' },
         arguments: computedIdentifiers
       }
     }]
   };
-  var newExpression = _escodegen2['default'].generate(newExpressionAst, { format: { indent: { style: '' }, newline: ' ', semicolons: false } });
-  return [newExpression, declarationOfExpressionFunction];
+
+  function nameComputedFunction(name) {
+    declarationOfExpressionFunction.key.name = name;
+    newExpressionAst.body[0].expression.callee.name = name;
+    return _escodegen2['default'].generate(newExpressionAst, { format: { indent: { style: '' }, newline: ' ', semicolons: false } });
+  }
+
+  return [nameComputedFunction, declarationOfExpressionFunction];
+}
+
+function removeDuplicateComments(ast) {
+  // Some comments are duplicated as both the leadingComment for one node,
+  // and the trailing comment for another. Every comment's range is unique,
+  // so two comments with the same range are talking about the same comment.
+  // So we'll just remove all trailing comments which are also a leading
+  // comment somewhere.
+  var rangesInLeadingComments = new Set();
+  _estreeWalker2['default'].walk(ast, {
+    enter: function enter(node) {
+      var _iteratorNormalCompletion2 = true;
+      var _didIteratorError2 = false;
+      var _iteratorError2 = undefined;
+
+      try {
+        for (var _iterator2 = (node.leadingComments || [])[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+          var leadingComment = _step2.value;
+
+          rangesInLeadingComments.add(leadingComment.range.join(','));
+        }
+      } catch (err) {
+        _didIteratorError2 = true;
+        _iteratorError2 = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion2 && _iterator2['return']) {
+            _iterator2['return']();
+          }
+        } finally {
+          if (_didIteratorError2) {
+            throw _iteratorError2;
+          }
+        }
+      }
+    }
+  });
+  _estreeWalker2['default'].walk(ast, {
+    enter: function enter(node) {
+      if (!node.trailingComments) {
+        return;
+      }
+      node.trailingComments = node.trailingComments.filter(function (comment) {
+        return !rangesInLeadingComments.has(comment.range.join(','));
+      });
+    }
+  });
 }
 
 module.exports = upgradeJs;
@@ -24344,27 +24535,13 @@ module.exports={
     "benchmark-quick": "node test/benchmarks.js quick"
   },
   "dependencies": {},
-  "gitHead": "4e72bb00332dbbced9a77d7c281962a46a6759cc",
+  "gitHead": "0729ab5314c370309157fcca4e429bb36f5df262",
+  "readme": "# Espree\n\nEspree is an actively-maintained fork Esprima, a high performance,\nstandard-compliant [ECMAScript](http://www.ecma-international.org/publications/standards/Ecma-262.htm)\nparser written in ECMAScript (also popularly known as\n[JavaScript](http://en.wikipedia.org/wiki/JavaScript)).\n\n## Features\n\n- Full support for ECMAScript 5.1 ([ECMA-262](http://www.ecma-international.org/publications/standards/Ecma-262.htm))\n- Implements [ESTree](https://github.com/estree/estree) (both ES5 and ES6 specs) as the AST format.\n- Optional tracking of syntax node location (index-based and line-column)\n- Heavily tested and battle-hardened by inclusion in [ESLint](http://eslint.org)\n\n## Usage\n\nInstall:\n\n```\nnpm i espree --save\n```\n\nAnd in your Node.js code:\n\n```javascript\nvar espree = require(\"espree\");\n\nvar ast = espree.parse(code);\n```\n\nThere is a second argument to `parse()` that allows you to specify various options:\n\n```javascript\nvar espree = require(\"espree\");\n\nvar ast = espree.parse(code, {\n\n    // attach range information to each node\n    range: true,\n\n    // attach line/column location information to each node\n    loc: true,\n\n    // create a top-level comments array containing all comments\n    comments: true,\n\n    // attach comments to the closest relevant node as leadingComments and\n    // trailingComments\n    attachComment: true,\n\n    // create a top-level tokens array containing all tokens\n    tokens: true,\n\n    // try to continue parsing if an error is encountered, store errors in a\n    // top-level errors array\n    tolerant: true,\n\n    // specify parsing features (default only has blockBindings: true)\n    // setting this option replaces the default values\n    ecmaFeatures: {\n\n        // enable parsing of arrow functions\n        arrowFunctions: true,\n\n        // enable parsing of let/const\n        blockBindings: true,\n\n        // enable parsing of destructured arrays and objects\n        destructuring: true,\n\n        // enable parsing of regular expression y flag\n        regexYFlag: true,\n\n        // enable parsing of regular expression u flag\n        regexUFlag: true,\n\n        // enable parsing of template strings\n        templateStrings: true,\n\n        // enable parsing of binary literals\n        binaryLiterals: true,\n\n        // enable parsing of ES6 octal literals\n        octalLiterals: true,\n\n        // enable parsing unicode code point escape sequences\n        unicodeCodePointEscapes: true,\n\n        // enable parsing of default parameters\n        defaultParams: true,\n\n        // enable parsing of rest parameters\n        restParams: true,\n\n        // enable parsing of for-of statement\n        forOf: true,\n\n        // enable parsing computed object literal properties\n        objectLiteralComputedProperties: true,\n\n        // enable parsing of shorthand object literal methods\n        objectLiteralShorthandMethods: true,\n\n        // enable parsing of shorthand object literal properties\n        objectLiteralShorthandProperties: true,\n\n        // Allow duplicate object literal properties (except '__proto__')\n        objectLiteralDuplicateProperties: true,\n\n        // enable parsing of generators/yield\n        generators: true,\n\n        // enable parsing spread operator\n        spread: true,\n\n        // enable super in functions\n        superInFunctions: true,\n\n        // enable parsing classes\n        classes: true,\n\n        // enable parsing of new.target\n        newTarget: false,\n\n        // enable parsing of modules\n        modules: true,\n\n        // enable React JSX parsing\n        jsx: true,\n\n        // enable return in global scope\n        globalReturn: true,\n\n        // allow experimental object rest/spread\n        experimentalObjectRestSpread: true\n    }\n});\n```\n\n## Plans\n\nEspree starts as a fork of Esprima v1.2.2, the last stable published released of Esprima before work on ECMAScript 6 began. Espree's first version is therefore v1.2.2 and is 100% compatible with Esprima v1.2.2 as a drop-in replacement. The version number will be incremented based on [semantic versioning](http://semver.org/) as features and bug fixes are added.\n\nThe immediate plans are:\n\n1. Move away from giant files and move towards small, modular files that are easier to manage.\n1. Move towards CommonJS for all files and use browserify to create browser bundles.\n1. Support ECMAScript version filtering, allowing users to specify which version the parser should work in (similar to Acorn's `ecmaVersion` property).\n1. Add tests to track comment attachment.\n1. Add well-thought-out features that are useful for tools developers.\n1. Add full support for ECMAScript 6.\n1. Add optional parsing of JSX.\n\n## Esprima Compatibility Going Forward\n\nThe primary goal is to produce the exact same AST structure as Esprima and Acorn, and that takes precedence over anything else. (The AST structure being the ESTree API with JSX extensions.) Separate from that, Espree may deviate from what Esprima outputs in terms of where and how comments are attached, as well as what additional information is available on AST nodes. That is to say, Espree may add more things to the AST nodes than Esprima does but the overall AST structure produced will be the same.\n\nEspree may also deviate from Esprima in the interface it exposes.\n\n## Frequent and Incremental Releases\n\nEspree will not do giant releases. Releases will happen periodically as changes are made and incremental releases will be made towards larger goals. For instance, we will not have one big release for ECMAScript 6 support. Instead, we will implement ECMAScript 6, piece-by-piece, hiding those pieces behind an `ecmaFeatures` property that allows you to opt-in to use those features.\n\n## Contributing\n\nIssues and pull requests will be triaged and responded to as quickly as possible. We operate under the [ESLint Contributor Guidelines](http://eslint.org/docs/developer-guide/contributing.html), so please be sure to read them before contributing. If you're not sure where to dig in, check out the [issues](https://github.com/eslint/espree/issues).\n\nEspree is licensed under a permissive BSD 2-clause license.\n\n## Build Commands\n\n* `npm test` - run all linting and tests\n* `npm run lint` - run all linting\n* `npm run browserify` - creates a version of Espree that is usable in a browser\n\n## Known Incompatibilities\n\nIn an effort to help those wanting to transition from other parsers to Espree, the following is a list of noteworthy incompatibilities with other parsers. These are known differences that we do not intend to change.\n\n### Esprima 1.2.2\n\n* None.\n\n### Esprima/Harmony Branch\n\n* Esprima/Harmony uses a different comment attachment algorithm that results in some comments being added in different places than Espree. The algorithm Espree uses is the same one used in Esprima 1.2.2.\n* Espree uses ESTree format for the AST nodes whereas Esprima/Harmony uses a nonstandard format.\n\n### Esprima-FB\n\n* All Esprima/Harmony incompatibilities.\n\n## Frequently Asked Questions\n\n### Why are you forking Esprima?\n\n[ESLint](http://eslint.org) has been relying on Esprima as its parser from the beginning. While that was fine when the JavaScript language was evolving slowly, the pace of development has increased dramatically and Esprima has fallen behind. ESLint, like many other tools reliant on Esprima, has been stuck in using new JavaScript language features until Esprima updates, and that has caused our users frustration.\n\nWe decided the only way for us to move forward was to create our own parser, bringing us inline with JSHint and JSLint, and allowing us to keep implementing new features as we need them. We chose to fork Esprima instead of starting from scratch in order to move as quickly as possible with a compatible API.\n\n### Have you tried working with Esprima?\n\nYes. Since the start of ESLint, we've regularly filed bugs and feature requests with Esprima. Unfortunately, we've been unable to make much progress towards getting our needs addressed.\n\nWe are actively working with Esprima as part of its adoption by the jQuery Foundation. We are hoping to reconcile Espree with Esprima at some point in the future, but there are some different philosophies around how the projects work that need to be worked through. We're committed to a goal of merging Espree back into Esprima, or at the very least, to have Espree track Esprima as an upstream target so there's no duplication of effort. In the meantime, we will continue to update and maintain Espree.\n\n### Why don't you just use Facebook's Esprima fork?\n\n`esprima-fb` is Facebook's Esprima fork that features JSX and Flow type annotations. We tried working with `esprima-fb` in our evaluation of how to support ECMAScript 6 and JSX in ESLint. Unfortunately, we were hampered by bugs that were part of Esprima (not necessarily Facebook's code). Since `esprima-fb` tracks the Esprima Harmony branch, that means we still were unable to get fixes or features we needed in a timely manner.\n\n### Why don't you just use Acorn?\n\nAcorn is a great JavaScript parser that produces an AST that is compatible with Esprima. Unfortunately, ESLint relies on more than just the AST to do its job. It relies on Esprima's tokens and comment attachment features to get a complete picture of the source code. We investigated switching to Acorn, but the inconsistencies between Esprima and Acorn created too much work for a project like ESLint.\n\nWe expect there are other tools like ESLint that rely on more than just the AST produced by Esprima, and so a drop-in replacement will help those projects as well as ESLint.\n\n### What ECMAScript 6 features do you support?\n\nAll of them.\n\n### Why use Espree instead of Esprima?\n\n* Faster turnaround time on bug fixes\n* More frequent releases\n* Better communication and responsiveness to issues\n* Ongoing development\n\n### Why use Espree instead of Esprima-FB?\n\n* Opt-in to just the ECMAScript 6 features you want\n* JSX support is off by default, so you're not forced to use it to use ECMAScript 6\n* Stricter ECMAScript 6 support\n",
+  "readmeFilename": "README.md",
   "_id": "espree@2.2.3",
-  "_shasum": "158cfc10f6e57c6bbc5a7438eb8bc40f267f9b54",
-  "_from": "espree@2.2.3",
-  "_npmVersion": "1.4.28",
-  "_npmUser": {
-    "name": "nzakas",
-    "email": "nicholas@nczconsulting.com"
-  },
-  "maintainers": [
-    {
-      "name": "nzakas",
-      "email": "nicholas@nczconsulting.com"
-    }
-  ],
-  "dist": {
-    "shasum": "158cfc10f6e57c6bbc5a7438eb8bc40f267f9b54",
-    "tarball": "http://registry.npmjs.org/espree/-/espree-2.2.3.tgz"
-  },
-  "directories": {},
-  "_resolved": "https://registry.npmjs.org/espree/-/espree-2.2.3.tgz"
+  "_shasum": "d2223b3daee94037e209b6a7b58f460f2bec9251",
+  "_from": "git+https://github.com/eslint/espree.git#master",
+  "_resolved": "git+https://github.com/eslint/espree.git#0729ab5314c370309157fcca4e429bb36f5df262"
 }
 
 },{}],217:[function(require,module,exports){
