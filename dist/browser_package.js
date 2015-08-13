@@ -592,6 +592,7 @@ var Page = (function () {
     this.toIgnore = options.toIgnore || new Set();
     this.webserverRoot = options.webserverRoot;
     this.componentsPath = options.componentsPath;
+    this.onlyReformat = options.onlyReformat;
     this.modified = false;
     this.results = {};
     this.upgradedScriptElems = new Set();
@@ -632,7 +633,7 @@ var Page = (function () {
           attrs: {},
           hostAttrs: {},
           listeners: {},
-          newDeclarations: [],
+          newDeclarations: new Set(),
           polyfillTokenList: false
         };
         _this.elements.set(elemName, elementMetadata);
@@ -711,7 +712,7 @@ var Page = (function () {
         }
 
         if ('extends' in polyElem.attribs) {
-          elementMetadata.newDeclarations.push({
+          elementMetadata.newDeclarations.add({
             type: 'Property',
             key: { type: 'Identifier', name: 'extends' },
             value: { type: 'Literal', value: polyElem.attribs['extends'] }
@@ -800,6 +801,13 @@ var Page = (function () {
         importElem.attribs.href = importElem.attribs.href.substring(0, match.index) + newDirname + '/' + newFilename + '.html';
       });
 
+      if (!this.modified) {
+        return this.results;
+      }
+
+      if (this.onlyReformat) {
+        this.$ = _whacko2['default'].load(elemSource);
+      }
       var result = this.$.html() + '\n';
 
       // If the source didn't include an <html> or a <body> then we can remove the
@@ -809,9 +817,7 @@ var Page = (function () {
         result = result.replace(/<\/head><body>/, '');
         result = result.replace(/<\/body><\/html>\n/, '');
       }
-      if (this.modified) {
-        this.results[this.filename] = result;
-      }
+      this.results[this.filename] = result;
 
       return this.results;
     }
@@ -891,7 +897,7 @@ var Page = (function () {
           return;
         }
         if (elementMetadata) {
-          elementMetadata.newDeclarations.push(declaration);
+          elementMetadata.newDeclarations.add(declaration);
         } else {
           _this4.insertHtmlCommentBefore(node, ['The expression   ' + expression + '   can\'t work in a', 'dom-bind template, as it should be an anonymous computed property.', 'If you convert it into a Polymer element then polyup should be ' + 'able to', 'upgrade it.']);
         }
@@ -981,7 +987,7 @@ var Page = (function () {
 
           addNewDeclaration(newDeclaration, expression, node);
           if (elementMetadata && newDeclaration) {
-            newDeclaration.rename = function (newName) {
+            var renameFn = function renameFn(newName) {
               var newExpression = namer(newName);
               var expr = '{{' + newExpression + '}}';
               if (shouldOneWayBind) {
@@ -989,6 +995,7 @@ var Page = (function () {
               }
               node.attribs[attrName] = expr;
             };
+            newDeclaration.onRenameHandlers.push(renameFn);
             var computedFunctionName = 'compute' + attrName.charAt(0).toUpperCase() + attrName.substring(1);
             computedFunctionName = computedFunctionName.replace('$', '').replace('?', '');
             newDeclaration.rename(computedFunctionName);
@@ -1021,59 +1028,79 @@ var Page = (function () {
       if (template) {
         allTextNodes = findAllTextNodes(template);
       }
+      var upgradeExpressionPiece = function upgradeExpressionPiece(piece, textNode, onRename) {
+        if (elementMetadata && piece.expression.match(/tokenList/)) {
+          elementMetadata.polyfillTokenList = true;
+        }
+
+        var _upgradeJs$fixupComputedExpression3 = _upgrade_js2['default'].fixupComputedExpression(piece.expression);
+
+        var _upgradeJs$fixupComputedExpression32 = _slicedToArray(_upgradeJs$fixupComputedExpression3, 2);
+
+        var namer = _upgradeJs$fixupComputedExpression32[0];
+        var newDeclaration = _upgradeJs$fixupComputedExpression32[1];
+
+        var renameFn = function renameFn(newName) {
+          var newExpression = namer(newName);
+          if (elementMetadata) {
+            piece.expression = newExpression;
+          }
+          onRename();
+        };
+        var initialName = 'computeExpression' + counter++;
+        if (newDeclaration) {
+          newDeclaration.onRenameHandlers.push(renameFn);
+          newDeclaration.rename(initialName);
+          addNewDeclaration(newDeclaration, piece.expression, textNode.parent);
+        } else {
+          onRename();
+        }
+      };
       var _iteratorNormalCompletion2 = true;
       var _didIteratorError2 = false;
       var _iteratorError2 = undefined;
 
       try {
-        for (var _iterator2 = allTextNodes[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+        var _loop2 = function () {
           var textNode = _step2.value;
 
-          var pieces = this.matchExpressions(textNode.data);
+          var pieces = _this4.matchExpressions(textNode.data);
           // No expressions. Nothing to do;
           if (pieces.length === 1 && 'string' in pieces[0]) {
-            continue;
+            return 'continue';
           }
-          // Fixup all of the expressions we found.
-          var _iteratorNormalCompletion3 = true;
-          var _didIteratorError3 = false;
-          var _iteratorError3 = undefined;
+
+          // Expression takes up entire text node.
+          if (pieces.length === 1 && 'expression' in pieces[0]) {
+            upgradeExpressionPiece(pieces[0], textNode, function () {
+              textNode.data = '{{' + pieces[0].expression + '}}';
+            });
+            return 'continue';
+          }
+          _iteratorNormalCompletion3 = true;
+          _didIteratorError3 = false;
+          _iteratorError3 = undefined;
 
           try {
-            var _loop2 = function () {
+            var _loop3 = function () {
               var piece = _step3.value;
 
               if ('expression' in piece) {
                 (function () {
-                  if (elementMetadata && piece.expression.match(/tokenList/)) {
-                    elementMetadata.polyfillTokenList = true;
-                  }
-
-                  var _upgradeJs$fixupComputedExpression3 = _upgrade_js2['default'].fixupComputedExpression(piece.expression);
-
-                  var _upgradeJs$fixupComputedExpression32 = _slicedToArray(_upgradeJs$fixupComputedExpression3, 2);
-
-                  var namer = _upgradeJs$fixupComputedExpression32[0];
-                  var newDeclaration = _upgradeJs$fixupComputedExpression32[1];
-
-                  if (newDeclaration) {
-                    newDeclaration.rename = function (newName) {
-                      var newExpression = namer(newName);
-                      if (elementMetadata) {
-                        piece.expression = newExpression;
-                      }
-                    };
-                    newDeclaration.rename('computeExpression' + counter++);
-                    addNewDeclaration(newDeclaration, piece.expression, textNode.parent);
-                  }
+                  var span = _this4.$('<span>');
+                  _this4.$(textNode).before(span);
+                  upgradeExpressionPiece(piece, textNode, function () {
+                    span.text('{{' + piece.expression + '}}');
+                  });
                 })();
+              } else {
+                _this4.$(textNode).before(piece.string);
               }
             };
 
-            for (var _iterator3 = pieces[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
-              _loop2();
+            for (_iterator3 = pieces[Symbol.iterator](); !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+              _loop3();
             }
-            // Expression takes up entire text node.
           } catch (err) {
             _didIteratorError3 = true;
             _iteratorError3 = err;
@@ -1089,40 +1116,21 @@ var Page = (function () {
             }
           }
 
-          if (pieces.length === 1 && 'expression' in pieces[0]) {
-            textNode.data = '{{' + pieces[0].expression + '}}';
-            continue;
-          }
-          var _iteratorNormalCompletion4 = true;
-          var _didIteratorError4 = false;
-          var _iteratorError4 = undefined;
-
-          try {
-            for (var _iterator4 = pieces[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
-              var piece = _step4.value;
-
-              if ('expression' in piece) {
-                this.$(textNode).before(this.$('<span>').text('{{' + piece.expression + '}}'));
-              } else {
-                this.$(textNode).before(piece.string);
-              }
-            }
-          } catch (err) {
-            _didIteratorError4 = true;
-            _iteratorError4 = err;
-          } finally {
-            try {
-              if (!_iteratorNormalCompletion4 && _iterator4['return']) {
-                _iterator4['return']();
-              }
-            } finally {
-              if (_didIteratorError4) {
-                throw _iteratorError4;
-              }
-            }
-          }
-
           textNode.data = '';
+        };
+
+        for (var _iterator2 = allTextNodes[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+          var _iteratorNormalCompletion3;
+
+          var _didIteratorError3;
+
+          var _iteratorError3;
+
+          var _iterator3, _step3;
+
+          var _ret2 = _loop2();
+
+          if (_ret2 === 'continue') continue;
         }
 
         // <input value={{x}}> -> <input value={{x::input}}>
@@ -1170,13 +1178,13 @@ var Page = (function () {
         }
         var expressionPieces = match[1].split(/\s+\|\s+/);
         var expression = expressionPieces[0];
-        var _iteratorNormalCompletion5 = true;
-        var _didIteratorError5 = false;
-        var _iteratorError5 = undefined;
+        var _iteratorNormalCompletion4 = true;
+        var _didIteratorError4 = false;
+        var _iteratorError4 = undefined;
 
         try {
-          for (var _iterator5 = expressionPieces.slice(1)[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
-            var func = _step5.value;
+          for (var _iterator4 = expressionPieces.slice(1)[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+            var func = _step4.value;
 
             var parsed = _espree2['default'].parse(func).body[0].expression;
             if (parsed.type === 'CallExpression') {
@@ -1187,16 +1195,16 @@ var Page = (function () {
             }
           }
         } catch (err) {
-          _didIteratorError5 = true;
-          _iteratorError5 = err;
+          _didIteratorError4 = true;
+          _iteratorError4 = err;
         } finally {
           try {
-            if (!_iteratorNormalCompletion5 && _iterator5['return']) {
-              _iterator5['return']();
+            if (!_iteratorNormalCompletion4 && _iterator4['return']) {
+              _iterator4['return']();
             }
           } finally {
-            if (_didIteratorError5) {
-              throw _iteratorError5;
+            if (_didIteratorError4) {
+              throw _iteratorError4;
             }
           }
         }
@@ -1265,12 +1273,12 @@ var Page = (function () {
           console.warn('Warning: unable to read script source for ' + srcPath);
           return;
         }
-        var upgradedJs = (0, _upgrade_js2['default'])(scriptSource, this.elements, implicitElemName, 0);
+        var upgradedJs = (0, _upgrade_js2['default'])(scriptSource, this.elements, implicitElemName, 0, this.onlyReformat);
         if (upgradedJs) {
           this.results[pathToScriptElem] = upgradedJs + '\n';
         }
       } else {
-        var upgradedJs = (0, _upgrade_js2['default'])(this.$(scriptElem).text(), this.elements, implicitElemName, 2);
+        var upgradedJs = (0, _upgrade_js2['default'])(this.$(scriptElem).text(), this.elements, implicitElemName, 2, this.onlyReformat);
         if (upgradedJs) {
           this.modified = true;
           this.$(scriptElem).text('\n' + upgradedJs + '\n  ');
@@ -1495,7 +1503,7 @@ function shouldConvertToAttributeBinding(attrName, element) {
 }
 
 module.exports = upgradeHtml;
-},{"./element_mapping":3,"./upgrade_css":4,"./upgrade_js":6,"babel/polyfill":173,"escodegen":188,"espree":206,"fs":1,"lodash":218,"path":179,"string.prototype.endswith":240,"vulcanize/lib/pathresolver":243,"whacko":246}],6:[function(require,module,exports){
+},{"./element_mapping":3,"./upgrade_css":4,"./upgrade_js":6,"babel/polyfill":173,"escodegen":188,"espree":206,"fs":1,"lodash":218,"path":179,"string.prototype.endswith":219,"vulcanize/lib/pathresolver":222,"whacko":246}],6:[function(require,module,exports){
 /**
  * @license
  * Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
@@ -1539,12 +1547,13 @@ var _element_mapping2 = _interopRequireDefault(_element_mapping);
 require("babel/polyfill");
 
 var Script = (function () {
-  function Script(jsSource, elements, initialIndent, implicitElemName) {
+  function Script(jsSource, elements, initialIndent, implicitElemName, onlyReformat) {
     _classCallCheck(this, Script);
 
     this.jsSource = jsSource;
     this.elements = elements;
     this.initialIndent = initialIndent;
+    this.onlyReformat = onlyReformat;
     this.modified = false;
     this.implicitElemName = implicitElemName;
     this.implicitElemNameUsed = false;
@@ -1572,6 +1581,12 @@ var Script = (function () {
         return null;
       }
 
+      // Overwrite all changes that we've made, we just wanted to be sure that
+      // we did modifications to the file.
+      if (this.onlyReformat) {
+        ast = _espree2['default'].parse(this.jsSource, { attachComment: true });
+        removeDuplicateComments(ast);
+      }
       return _escodegen2['default'].generate(ast, {
         comment: true,
         format: {
@@ -1596,7 +1611,7 @@ var Script = (function () {
       var hostAttrs = {};
       var behaviors = [];
       var listeners = {};
-      var newDeclarations = [];
+      var newDeclarations = new Set();
       if (name == null) {
         if (this.implicitElemName == null) {
           throw new Error('Unable to determine element name in javascript. ' + 'No matching <polymer-element> found, nor was an explicit name ' + 'given.');
@@ -1640,7 +1655,7 @@ var Script = (function () {
       // Create a 'properties' block with all of the properties we've extracted
       // from various places (the 'attributes' attribute, computed properties,
       // observed properties, default values, etc etc).
-      migrateAttributesToPropertiesBlock(polyCall, declaration, attrs);
+      migrateAttributesToPropertiesBlock(polyCall, declaration, attrs, newDeclarations);
 
       // hostAttributes
       var hostAttrsProperties = [];
@@ -1824,8 +1839,9 @@ var Script = (function () {
 function upgradeJs(jsSource, elements) {
   var implicitElemName = arguments.length <= 2 || arguments[2] === undefined ? null : arguments[2];
   var initialIndent = arguments.length <= 3 || arguments[3] === undefined ? 0 : arguments[3];
+  var onlyReformat = arguments.length <= 4 || arguments[4] === undefined ? false : arguments[4];
 
-  var script = new Script(jsSource, elements, initialIndent, implicitElemName);
+  var script = new Script(jsSource, elements, initialIndent, implicitElemName, onlyReformat);
   return script.upgrade();
 }
 
@@ -1845,7 +1861,7 @@ function extractExplicitElementNameFromPolymerCall(polymerCall) {
   return null;
 }
 
-function migrateAttributesToPropertiesBlock(polyCall, declaration, attrs) {
+function migrateAttributesToPropertiesBlock(polyCall, declaration, attrs, newDeclarations) {
   // migrate default values from directly the declaration
   var literalTypes = new Set(['Literal', 'ObjectExpression', 'ArrayExpression']);
   var wellKnownNames = new Set(['observe', 'computed', 'publish']);
@@ -1858,7 +1874,12 @@ function migrateAttributesToPropertiesBlock(polyCall, declaration, attrs) {
       return;
     }
     attrs[attrName] = attrs[attrName] || { name: attrName };
-    attrs[attrName].value = property.value;
+    var attr = attrs[attrName];
+    attr.leadingComments = attr.leadingComments || [];
+    if (property && property.leadingComments) {
+      attr.leadingComments = attr.leadingComments.concat(property.leadingComments);
+    }
+    attr.value = property.value;
   });
   declaration.properties = declaration.properties.filter(function (prop) {
     if (literalTypes.has(prop.value.type)) {
@@ -1895,26 +1916,18 @@ function migrateAttributesToPropertiesBlock(polyCall, declaration, attrs) {
     return getPropertyKeyName(prop) != 'publish';
   });
 
-  // Migrate default values from the object itself
-  declaration.properties.forEach(function (prop) {
-    var propName = getPropertyKeyName(prop);
-    if (propName in attrs) {
-      attrs[propName].value = prop.value;
-    }
-  });
   declaration.properties = declaration.properties.filter(function (prop) {
     return !(getPropertyKeyName(prop) in attrs);
   });
 
-  var attr;
   // Infer types from default values
   for (var attrName in attrs) {
-    attr = attrs[attrName];
+    var attr = attrs[attrName];
     if (attr.type || !attr.value) {
       continue;
     }
     var value = attr.value;
-    var typeName;
+    var typeName = undefined;
     if (value.type === 'ObjectExpression') {
       typeName = 'Object';
     } else if (value.type === 'ArrayExpression') {
@@ -1933,8 +1946,8 @@ function migrateAttributesToPropertiesBlock(polyCall, declaration, attrs) {
   }
 
   // Transform Object and Array default values into functions returning same
-  for (attrName in attrs) {
-    attr = attrs[attrName];
+  for (var attrName in attrs) {
+    var attr = attrs[attrName];
     if (!attr.value) {
       continue;
     }
@@ -1965,7 +1978,7 @@ function migrateAttributesToPropertiesBlock(polyCall, declaration, attrs) {
       return;
     }
     if (prop.value.type !== 'ObjectExpression') {
-      throw new Error('Expected the "observe" field on ' + attr.name + ' to be an observed properties declaration, a la ' + 'https://www.polymer-project.org/0.5/docs/' + 'polymer/polymer.html#observeblock');
+      throw new Error('Expected the "observe" field on ' + getPropertyKeyName(prop) + ' to be an observed properties declaration, a la ' + 'https://www.polymer-project.org/0.5/docs/' + 'polymer/polymer.html#observeblock');
     }
     prop.value.properties.forEach(function (observedProp) {
       var propName = getPropertyKeyName(observedProp);
@@ -1998,13 +2011,12 @@ function migrateAttributesToPropertiesBlock(polyCall, declaration, attrs) {
       return;
     }
     if (prop.value.type !== 'FunctionExpression') {
-      throw new Error("Expected that the registered observer " + propName + " would be a function, not a " + value.prop.type);
+      throw new Error("Expected that the registered observer " + propName + " would be a function, not a " + prop.value.type);
     }
     fixObserverArgumentOrder(prop.value);
   });
 
   // Handle old-style computed properties
-  var newComputedFunctions = [];
   declaration.properties.forEach(function (prop) {
     if (getPropertyKeyName(prop) != 'computed') {
       return;
@@ -2032,17 +2044,16 @@ function migrateAttributesToPropertiesBlock(polyCall, declaration, attrs) {
         attrs[computedPropName].computed = {
           type: 'Literal', value: newComputedExpression };
       };
-      renameFn('compute' + computedPropName.charAt(0).toUpperCase() + computedPropName.slice(1));
+      var initialName = 'compute' + computedPropName.charAt(0).toUpperCase() + computedPropName.slice(1);
       if (newDeclaration) {
-        newDeclaration.rename = renameFn;
-        newComputedFunctions.push(newDeclaration);
+        newDeclaration.onRenameHandlers.push(renameFn);
+        newDeclaration.rename(initialName);
+        newDeclarations.add(newDeclaration);
+      } else {
+        renameFn(initialName);
       }
     });
   });
-  newComputedFunctions.sort(function (a, b) {
-    return getPropertyKeyName(a).localeCompare(getPropertyKeyName(b));
-  });
-  declaration.properties = declaration.properties.concat(newComputedFunctions);
   declaration.properties = declaration.properties.filter(function (prop) {
     return getPropertyKeyName(prop) != 'computed';
   });
@@ -2143,33 +2154,45 @@ function getBehaviorsDeclaration(behaviors) {
   };
 }
 
+var expressionFunctionCache = new Map();
 function fixupComputedExpression(expression) {
   var functionExpression = 'function x() { return (' + expression + '); }';
   var parsed = _espree2['default'].parse(functionExpression);
   parsed = parsed.body[0].body.body[0].argument;
   var leadingComments = [];
 
-  function isObservable(astNode) {
-    if (astNode.type === 'Identifier') {
-      return true;
-    }
-    // foo.bar, foo['bar'], foo.bar.baz[1 + 1], etc
-    if (astNode.type === 'MemberExpression') {
-      // If the thing being accessed is a complex expression, then this
-      // isn't observable.
-      if (!isObservable(astNode.object)) {
-        return false;
-      }
-      // Otherwise, if it's just foo.bar, then it is.
-      if (!astNode.computed) {
+  function isObservable(_x4) {
+    var _again = true;
+
+    _function: while (_again) {
+      var astNode = _x4;
+      _again = false;
+
+      if (astNode.type === 'Identifier') {
         return true;
       }
-      // Otherwise, are we accessing a pure literal, like foo['bar']?
-      // If so, we're observable.
-      return astNode.property.type === 'Literal';
+      // foo.bar, foo['bar'], foo.bar.baz[1 + 1], etc
+      if (astNode.type === 'MemberExpression') {
+        // If the thing being accessed is a complex expression, then this
+        // isn't observable.
+        if (!isObservable(astNode.object)) {
+          return false;
+        }
+        // Otherwise, if it's just foo.bar, then it is.
+        if (!astNode.computed) {
+          return true;
+        }
+        // Otherwise, are we accessing a pure literal, like foo['bar']?
+        // If so, we're observable.
+        return astNode.property.type === 'Literal';
+      }
+      if (astNode.type === 'UnaryExpression' && astNode.operator === '!') {
+        _x4 = astNode.argument;
+        _again = true;
+        continue _function;
+      }
+      return false;
     }
-
-    return false;
   }
 
   // Check to see if we need to do anything to fixup this computed expression.
@@ -2209,7 +2232,7 @@ function fixupComputedExpression(expression) {
         }
         // If the identifier is the 'bar' in an expression like `foo.bar`, then
         // we don't consider it an input identifier. Only foo should be counted.
-        if (parent && parent.type === 'MemberExpression' && parent.property === node) {
+        if (parent && parent.type === 'MemberExpression' && !parent.computed && parent.property === node) {
           return;
         }
         inputIdentifiers.add(node.name);
@@ -2238,6 +2261,41 @@ function fixupComputedExpression(expression) {
     },
     leadingComments: leadingComments
   };
+
+  var key = _escodegen2['default'].generate({
+    type: 'ObjectExpression', properties: [declarationOfExpressionFunction] });
+  if (expressionFunctionCache.has(key)) {
+    declarationOfExpressionFunction = expressionFunctionCache.get(key);
+  } else {
+    expressionFunctionCache.set(key, declarationOfExpressionFunction);
+    declarationOfExpressionFunction.onRenameHandlers = [];
+    declarationOfExpressionFunction.rename = function (name) {
+      var _iteratorNormalCompletion2 = true;
+      var _didIteratorError2 = false;
+      var _iteratorError2 = undefined;
+
+      try {
+        for (var _iterator2 = this.onRenameHandlers[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+          var onRename = _step2.value;
+
+          onRename(name);
+        }
+      } catch (err) {
+        _didIteratorError2 = true;
+        _iteratorError2 = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion2 && _iterator2['return']) {
+            _iterator2['return']();
+          }
+        } finally {
+          if (_didIteratorError2) {
+            throw _iteratorError2;
+          }
+        }
+      }
+    };
+  }
 
   var newExpressionAst = {
     type: 'Program',
@@ -2269,27 +2327,27 @@ function removeDuplicateComments(ast) {
   var rangesInLeadingComments = new Set();
   _estreeWalker2['default'].walk(ast, {
     enter: function enter(node) {
-      var _iteratorNormalCompletion2 = true;
-      var _didIteratorError2 = false;
-      var _iteratorError2 = undefined;
+      var _iteratorNormalCompletion3 = true;
+      var _didIteratorError3 = false;
+      var _iteratorError3 = undefined;
 
       try {
-        for (var _iterator2 = (node.leadingComments || [])[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
-          var leadingComment = _step2.value;
+        for (var _iterator3 = (node.leadingComments || [])[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+          var leadingComment = _step3.value;
 
           rangesInLeadingComments.add(leadingComment.range.join(','));
         }
       } catch (err) {
-        _didIteratorError2 = true;
-        _iteratorError2 = err;
+        _didIteratorError3 = true;
+        _iteratorError3 = err;
       } finally {
         try {
-          if (!_iteratorNormalCompletion2 && _iterator2['return']) {
-            _iterator2['return']();
+          if (!_iteratorNormalCompletion3 && _iterator3['return']) {
+            _iterator3['return']();
           }
         } finally {
-          if (_didIteratorError2) {
-            throw _iteratorError2;
+          if (_didIteratorError3) {
+            throw _iteratorError3;
           }
         }
       }
@@ -6941,20 +6999,84 @@ function base64Slice (buf, start, end) {
 }
 
 function utf8Slice (buf, start, end) {
-  var res = ''
-  var tmp = ''
   end = Math.min(buf.length, end)
+  var firstByte
+  var secondByte
+  var thirdByte
+  var fourthByte
+  var bytesPerSequence
+  var tempCodePoint
+  var codePoint
+  var res = []
+  var i = start
 
-  for (var i = start; i < end; i++) {
-    if (buf[i] <= 0x7F) {
-      res += decodeUtf8Char(tmp) + String.fromCharCode(buf[i])
-      tmp = ''
+  for (; i < end; i += bytesPerSequence) {
+    firstByte = buf[i]
+    codePoint = 0xFFFD
+
+    if (firstByte > 0xEF) {
+      bytesPerSequence = 4
+    } else if (firstByte > 0xDF) {
+      bytesPerSequence = 3
+    } else if (firstByte > 0xBF) {
+      bytesPerSequence = 2
     } else {
-      tmp += '%' + buf[i].toString(16)
+      bytesPerSequence = 1
     }
+
+    if (i + bytesPerSequence <= end) {
+      switch (bytesPerSequence) {
+        case 1:
+          if (firstByte < 0x80) {
+            codePoint = firstByte
+          }
+          break
+        case 2:
+          secondByte = buf[i + 1]
+          if ((secondByte & 0xC0) === 0x80) {
+            tempCodePoint = (firstByte & 0x1F) << 0x6 | (secondByte & 0x3F)
+            if (tempCodePoint > 0x7F) {
+              codePoint = tempCodePoint
+            }
+          }
+          break
+        case 3:
+          secondByte = buf[i + 1]
+          thirdByte = buf[i + 2]
+          if ((secondByte & 0xC0) === 0x80 && (thirdByte & 0xC0) === 0x80) {
+            tempCodePoint = (firstByte & 0xF) << 0xC | (secondByte & 0x3F) << 0x6 | (thirdByte & 0x3F)
+            if (tempCodePoint > 0x7FF && (tempCodePoint < 0xD800 || tempCodePoint > 0xDFFF)) {
+              codePoint = tempCodePoint
+            }
+          }
+          break
+        case 4:
+          secondByte = buf[i + 1]
+          thirdByte = buf[i + 2]
+          fourthByte = buf[i + 3]
+          if ((secondByte & 0xC0) === 0x80 && (thirdByte & 0xC0) === 0x80 && (fourthByte & 0xC0) === 0x80) {
+            tempCodePoint = (firstByte & 0xF) << 0x12 | (secondByte & 0x3F) << 0xC | (thirdByte & 0x3F) << 0x6 | (fourthByte & 0x3F)
+            if (tempCodePoint > 0xFFFF && tempCodePoint < 0x110000) {
+              codePoint = tempCodePoint
+            }
+          }
+      }
+    }
+
+    if (codePoint === 0xFFFD) {
+      // we generated an invalid codePoint so make sure to only advance by 1 byte
+      bytesPerSequence = 1
+    } else if (codePoint > 0xFFFF) {
+      // encode to utf16 (surrogate pair dance)
+      codePoint -= 0x10000
+      res.push(codePoint >>> 10 & 0x3FF | 0xD800)
+      codePoint = 0xDC00 | codePoint & 0x3FF
+    }
+
+    res.push(codePoint)
   }
 
-  return res + decodeUtf8Char(tmp)
+  return String.fromCharCode.apply(String, res)
 }
 
 function asciiSlice (buf, start, end) {
@@ -7660,47 +7782,48 @@ function utf8ToBytes (string, units) {
   var length = string.length
   var leadSurrogate = null
   var bytes = []
-  var i = 0
 
-  for (; i < length; i++) {
+  for (var i = 0; i < length; i++) {
     codePoint = string.charCodeAt(i)
 
     // is surrogate component
     if (codePoint > 0xD7FF && codePoint < 0xE000) {
       // last char was a lead
-      if (leadSurrogate) {
-        // 2 leads in a row
-        if (codePoint < 0xDC00) {
-          if ((units -= 3) > -1) bytes.push(0xEF, 0xBF, 0xBD)
-          leadSurrogate = codePoint
-          continue
-        } else {
-          // valid surrogate pair
-          codePoint = leadSurrogate - 0xD800 << 10 | codePoint - 0xDC00 | 0x10000
-          leadSurrogate = null
-        }
-      } else {
+      if (!leadSurrogate) {
         // no lead yet
-
         if (codePoint > 0xDBFF) {
           // unexpected trail
           if ((units -= 3) > -1) bytes.push(0xEF, 0xBF, 0xBD)
           continue
+
         } else if (i + 1 === length) {
           // unpaired lead
           if ((units -= 3) > -1) bytes.push(0xEF, 0xBF, 0xBD)
           continue
-        } else {
-          // valid lead
-          leadSurrogate = codePoint
-          continue
         }
+
+        // valid lead
+        leadSurrogate = codePoint
+
+        continue
       }
+
+      // 2 leads in a row
+      if (codePoint < 0xDC00) {
+        if ((units -= 3) > -1) bytes.push(0xEF, 0xBF, 0xBD)
+        leadSurrogate = codePoint
+        continue
+      }
+
+      // valid surrogate pair
+      codePoint = leadSurrogate - 0xD800 << 10 | codePoint - 0xDC00 | 0x10000
+
     } else if (leadSurrogate) {
       // valid bmp char, but last char was a lead
       if ((units -= 3) > -1) bytes.push(0xEF, 0xBF, 0xBD)
-      leadSurrogate = null
     }
+
+    leadSurrogate = null
 
     // encode utf8
     if (codePoint < 0x80) {
@@ -7719,7 +7842,7 @@ function utf8ToBytes (string, units) {
         codePoint >> 0x6 & 0x3F | 0x80,
         codePoint & 0x3F | 0x80
       )
-    } else if (codePoint < 0x200000) {
+    } else if (codePoint < 0x110000) {
       if ((units -= 4) < 0) break
       bytes.push(
         codePoint >> 0x12 | 0xF0,
@@ -7770,14 +7893,6 @@ function blitBuffer (src, dst, offset, length) {
     dst[i + offset] = src[i]
   }
   return i
-}
-
-function decodeUtf8Char (str) {
-  try {
-    return decodeURIComponent(str)
-  } catch (err) {
-    return String.fromCharCode(0xFFFD) // UTF 8 invalid char
-  }
 }
 
 },{"base64-js":175,"ieee754":176,"is-array":177}],175:[function(require,module,exports){
@@ -16409,7 +16524,7 @@ define(function (require, exports, module) {
 },{"amdefine":204}],204:[function(require,module,exports){
 (function (process,__filename){
 /** vim: et:ts=4:sw=4:sts=4
- * @license amdefine 0.1.0 Copyright (c) 2011, The Dojo Foundation All Rights Reserved.
+ * @license amdefine 1.0.0 Copyright (c) 2011-2015, The Dojo Foundation All Rights Reserved.
  * Available via the MIT or new BSD license.
  * see: http://github.com/jrburke/amdefine for details
  */
@@ -16530,9 +16645,11 @@ function amdefine(module, requireFn) {
                 });
 
                 //Wait for next tick to call back the require call.
-                process.nextTick(function () {
-                    callback.apply(null, deps);
-                });
+                if (callback) {
+                    process.nextTick(function () {
+                        callback.apply(null, deps);
+                    });
+                }
             }
         }
 
@@ -16783,7 +16900,7 @@ module.exports={
   },
   "_id": "escodegen@1.6.1",
   "_shasum": "367de17d8510540d12bc6dcb8b3f918391265815",
-  "_from": "escodegen@",
+  "_from": "escodegen@>=1.6.1 <2.0.0",
   "_npmVersion": "2.0.0-alpha-5",
   "_npmUser": {
     "name": "constellation",
@@ -20110,7 +20227,7 @@ function reinterpretAsCoverFormalsList(expressions) {
                 throwError({}, Messages.UnexpectedToken, ".");
             }
 
-            reinterpretAsDestructuredParameter(options, param.argument);
+            validateParam(options, param.argument, param.argument.name);
             param.type = astNodeTypes.RestElement;
             params.push(param);
         } else if (param.type === astNodeTypes.RestElement) {
@@ -20157,9 +20274,14 @@ function reinterpretAsCoverFormalsList(expressions) {
 
 function parseArrowFunctionExpression(options, marker) {
     var previousStrict, body;
+    var arrowStart = lineNumber;
 
     expect("=>");
     previousStrict = strict;
+
+    if (lineNumber > arrowStart) {
+        throwError({}, Messages.UnexpectedToken, "=>");
+    }
 
     body = parseConciseBody();
 
@@ -20321,7 +20443,6 @@ function parseAssignmentExpression() {
     if (match("=>") &&
             (state.parenthesisCount === oldParenthesisCount ||
             state.parenthesisCount === (oldParenthesisCount + 1))) {
-
         if (node.type === astNodeTypes.Identifier) {
             params = reinterpretAsCoverFormalsList([ node ]);
         } else if (node.type === astNodeTypes.AssignmentExpression ||
@@ -20336,6 +20457,7 @@ function parseAssignmentExpression() {
         }
 
         if (params) {
+            state.parenthesisCount--;
             return parseArrowFunctionExpression(params, marker);
         }
     }
@@ -21199,7 +21321,7 @@ function parseFunctionSourceElements() {
     oldInIteration = state.inIteration;
     oldInSwitch = state.inSwitch;
     oldInFunctionBody = state.inFunctionBody;
-    oldParenthesisCount = state.parenthesizedCount;
+    oldParenthesisCount = state.parenthesisCount;
 
     state.labelSet = new StringMap();
     state.inIteration = false;
@@ -21227,7 +21349,7 @@ function parseFunctionSourceElements() {
     state.inIteration = oldInIteration;
     state.inSwitch = oldInSwitch;
     state.inFunctionBody = oldInFunctionBody;
-    state.parenthesizedCount = oldParenthesisCount;
+    state.parenthesisCount = oldParenthesisCount;
 
     return markerApply(marker, astNodeFactory.createBlockStatement(sourceElements));
 }
@@ -21572,7 +21694,7 @@ function parseExportNamedDeclaration() {
         do {
             isExportFromIdentifier = isExportFromIdentifier || matchKeyword("default");
             specifiers.push(parseExportSpecifier());
-        } while (match(",") && lex());
+        } while (match(",") && lex() && !match("}"));
     }
     expect("}");
 
@@ -21702,7 +21824,7 @@ function parseNamedImports() {
     if (!match("}")) {
         do {
             specifiers.push(parseImportSpecifier());
-        } while (match(",") && lex());
+        } while (match(",") && lex() && !match("}"));
     }
     expect("}");
     return specifiers;
@@ -24463,7 +24585,7 @@ module.exports={
     "esparse": "./bin/esparse.js",
     "esvalidate": "./bin/esvalidate.js"
   },
-  "version": "2.2.3",
+  "version": "2.2.4",
   "files": [
     "bin",
     "lib",
@@ -24535,13 +24657,28 @@ module.exports={
     "benchmark-quick": "node test/benchmarks.js quick"
   },
   "dependencies": {},
-  "gitHead": "0729ab5314c370309157fcca4e429bb36f5df262",
-  "readme": "# Espree\n\nEspree is an actively-maintained fork Esprima, a high performance,\nstandard-compliant [ECMAScript](http://www.ecma-international.org/publications/standards/Ecma-262.htm)\nparser written in ECMAScript (also popularly known as\n[JavaScript](http://en.wikipedia.org/wiki/JavaScript)).\n\n## Features\n\n- Full support for ECMAScript 5.1 ([ECMA-262](http://www.ecma-international.org/publications/standards/Ecma-262.htm))\n- Implements [ESTree](https://github.com/estree/estree) (both ES5 and ES6 specs) as the AST format.\n- Optional tracking of syntax node location (index-based and line-column)\n- Heavily tested and battle-hardened by inclusion in [ESLint](http://eslint.org)\n\n## Usage\n\nInstall:\n\n```\nnpm i espree --save\n```\n\nAnd in your Node.js code:\n\n```javascript\nvar espree = require(\"espree\");\n\nvar ast = espree.parse(code);\n```\n\nThere is a second argument to `parse()` that allows you to specify various options:\n\n```javascript\nvar espree = require(\"espree\");\n\nvar ast = espree.parse(code, {\n\n    // attach range information to each node\n    range: true,\n\n    // attach line/column location information to each node\n    loc: true,\n\n    // create a top-level comments array containing all comments\n    comments: true,\n\n    // attach comments to the closest relevant node as leadingComments and\n    // trailingComments\n    attachComment: true,\n\n    // create a top-level tokens array containing all tokens\n    tokens: true,\n\n    // try to continue parsing if an error is encountered, store errors in a\n    // top-level errors array\n    tolerant: true,\n\n    // specify parsing features (default only has blockBindings: true)\n    // setting this option replaces the default values\n    ecmaFeatures: {\n\n        // enable parsing of arrow functions\n        arrowFunctions: true,\n\n        // enable parsing of let/const\n        blockBindings: true,\n\n        // enable parsing of destructured arrays and objects\n        destructuring: true,\n\n        // enable parsing of regular expression y flag\n        regexYFlag: true,\n\n        // enable parsing of regular expression u flag\n        regexUFlag: true,\n\n        // enable parsing of template strings\n        templateStrings: true,\n\n        // enable parsing of binary literals\n        binaryLiterals: true,\n\n        // enable parsing of ES6 octal literals\n        octalLiterals: true,\n\n        // enable parsing unicode code point escape sequences\n        unicodeCodePointEscapes: true,\n\n        // enable parsing of default parameters\n        defaultParams: true,\n\n        // enable parsing of rest parameters\n        restParams: true,\n\n        // enable parsing of for-of statement\n        forOf: true,\n\n        // enable parsing computed object literal properties\n        objectLiteralComputedProperties: true,\n\n        // enable parsing of shorthand object literal methods\n        objectLiteralShorthandMethods: true,\n\n        // enable parsing of shorthand object literal properties\n        objectLiteralShorthandProperties: true,\n\n        // Allow duplicate object literal properties (except '__proto__')\n        objectLiteralDuplicateProperties: true,\n\n        // enable parsing of generators/yield\n        generators: true,\n\n        // enable parsing spread operator\n        spread: true,\n\n        // enable super in functions\n        superInFunctions: true,\n\n        // enable parsing classes\n        classes: true,\n\n        // enable parsing of new.target\n        newTarget: false,\n\n        // enable parsing of modules\n        modules: true,\n\n        // enable React JSX parsing\n        jsx: true,\n\n        // enable return in global scope\n        globalReturn: true,\n\n        // allow experimental object rest/spread\n        experimentalObjectRestSpread: true\n    }\n});\n```\n\n## Plans\n\nEspree starts as a fork of Esprima v1.2.2, the last stable published released of Esprima before work on ECMAScript 6 began. Espree's first version is therefore v1.2.2 and is 100% compatible with Esprima v1.2.2 as a drop-in replacement. The version number will be incremented based on [semantic versioning](http://semver.org/) as features and bug fixes are added.\n\nThe immediate plans are:\n\n1. Move away from giant files and move towards small, modular files that are easier to manage.\n1. Move towards CommonJS for all files and use browserify to create browser bundles.\n1. Support ECMAScript version filtering, allowing users to specify which version the parser should work in (similar to Acorn's `ecmaVersion` property).\n1. Add tests to track comment attachment.\n1. Add well-thought-out features that are useful for tools developers.\n1. Add full support for ECMAScript 6.\n1. Add optional parsing of JSX.\n\n## Esprima Compatibility Going Forward\n\nThe primary goal is to produce the exact same AST structure as Esprima and Acorn, and that takes precedence over anything else. (The AST structure being the ESTree API with JSX extensions.) Separate from that, Espree may deviate from what Esprima outputs in terms of where and how comments are attached, as well as what additional information is available on AST nodes. That is to say, Espree may add more things to the AST nodes than Esprima does but the overall AST structure produced will be the same.\n\nEspree may also deviate from Esprima in the interface it exposes.\n\n## Frequent and Incremental Releases\n\nEspree will not do giant releases. Releases will happen periodically as changes are made and incremental releases will be made towards larger goals. For instance, we will not have one big release for ECMAScript 6 support. Instead, we will implement ECMAScript 6, piece-by-piece, hiding those pieces behind an `ecmaFeatures` property that allows you to opt-in to use those features.\n\n## Contributing\n\nIssues and pull requests will be triaged and responded to as quickly as possible. We operate under the [ESLint Contributor Guidelines](http://eslint.org/docs/developer-guide/contributing.html), so please be sure to read them before contributing. If you're not sure where to dig in, check out the [issues](https://github.com/eslint/espree/issues).\n\nEspree is licensed under a permissive BSD 2-clause license.\n\n## Build Commands\n\n* `npm test` - run all linting and tests\n* `npm run lint` - run all linting\n* `npm run browserify` - creates a version of Espree that is usable in a browser\n\n## Known Incompatibilities\n\nIn an effort to help those wanting to transition from other parsers to Espree, the following is a list of noteworthy incompatibilities with other parsers. These are known differences that we do not intend to change.\n\n### Esprima 1.2.2\n\n* None.\n\n### Esprima/Harmony Branch\n\n* Esprima/Harmony uses a different comment attachment algorithm that results in some comments being added in different places than Espree. The algorithm Espree uses is the same one used in Esprima 1.2.2.\n* Espree uses ESTree format for the AST nodes whereas Esprima/Harmony uses a nonstandard format.\n\n### Esprima-FB\n\n* All Esprima/Harmony incompatibilities.\n\n## Frequently Asked Questions\n\n### Why are you forking Esprima?\n\n[ESLint](http://eslint.org) has been relying on Esprima as its parser from the beginning. While that was fine when the JavaScript language was evolving slowly, the pace of development has increased dramatically and Esprima has fallen behind. ESLint, like many other tools reliant on Esprima, has been stuck in using new JavaScript language features until Esprima updates, and that has caused our users frustration.\n\nWe decided the only way for us to move forward was to create our own parser, bringing us inline with JSHint and JSLint, and allowing us to keep implementing new features as we need them. We chose to fork Esprima instead of starting from scratch in order to move as quickly as possible with a compatible API.\n\n### Have you tried working with Esprima?\n\nYes. Since the start of ESLint, we've regularly filed bugs and feature requests with Esprima. Unfortunately, we've been unable to make much progress towards getting our needs addressed.\n\nWe are actively working with Esprima as part of its adoption by the jQuery Foundation. We are hoping to reconcile Espree with Esprima at some point in the future, but there are some different philosophies around how the projects work that need to be worked through. We're committed to a goal of merging Espree back into Esprima, or at the very least, to have Espree track Esprima as an upstream target so there's no duplication of effort. In the meantime, we will continue to update and maintain Espree.\n\n### Why don't you just use Facebook's Esprima fork?\n\n`esprima-fb` is Facebook's Esprima fork that features JSX and Flow type annotations. We tried working with `esprima-fb` in our evaluation of how to support ECMAScript 6 and JSX in ESLint. Unfortunately, we were hampered by bugs that were part of Esprima (not necessarily Facebook's code). Since `esprima-fb` tracks the Esprima Harmony branch, that means we still were unable to get fixes or features we needed in a timely manner.\n\n### Why don't you just use Acorn?\n\nAcorn is a great JavaScript parser that produces an AST that is compatible with Esprima. Unfortunately, ESLint relies on more than just the AST to do its job. It relies on Esprima's tokens and comment attachment features to get a complete picture of the source code. We investigated switching to Acorn, but the inconsistencies between Esprima and Acorn created too much work for a project like ESLint.\n\nWe expect there are other tools like ESLint that rely on more than just the AST produced by Esprima, and so a drop-in replacement will help those projects as well as ESLint.\n\n### What ECMAScript 6 features do you support?\n\nAll of them.\n\n### Why use Espree instead of Esprima?\n\n* Faster turnaround time on bug fixes\n* More frequent releases\n* Better communication and responsiveness to issues\n* Ongoing development\n\n### Why use Espree instead of Esprima-FB?\n\n* Opt-in to just the ECMAScript 6 features you want\n* JSX support is off by default, so you're not forced to use it to use ECMAScript 6\n* Stricter ECMAScript 6 support\n",
-  "readmeFilename": "README.md",
-  "_id": "espree@2.2.3",
-  "_shasum": "d2223b3daee94037e209b6a7b58f460f2bec9251",
-  "_from": "git+https://github.com/eslint/espree.git#master",
-  "_resolved": "git+https://github.com/eslint/espree.git#0729ab5314c370309157fcca4e429bb36f5df262"
+  "gitHead": "da58617f378c17fb01273f374f439956fb465aa7",
+  "_id": "espree@2.2.4",
+  "_shasum": "1068771b2c91aaf26a62ae4f9a46e74b34481219",
+  "_from": "espree@>=2.0.3 <3.0.0",
+  "_npmVersion": "1.4.28",
+  "_npmUser": {
+    "name": "nzakas",
+    "email": "nicholas@nczconsulting.com"
+  },
+  "maintainers": [
+    {
+      "name": "nzakas",
+      "email": "nicholas@nczconsulting.com"
+    }
+  ],
+  "dist": {
+    "shasum": "1068771b2c91aaf26a62ae4f9a46e74b34481219",
+    "tarball": "http://registry.npmjs.org/espree/-/espree-2.2.4.tgz"
+  },
+  "directories": {},
+  "_resolved": "https://registry.npmjs.org/espree/-/espree-2.2.4.tgz",
+  "readme": "ERROR: No README data found!"
 }
 
 },{}],217:[function(require,module,exports){
@@ -36972,6 +37109,847 @@ module.exports={
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{}],219:[function(require,module,exports){
+/*! http://mths.be/endswith v0.2.0 by @mathias */
+if (!String.prototype.endsWith) {
+	(function() {
+		'use strict'; // needed to support `apply`/`call` with `undefined`/`null`
+		var defineProperty = (function() {
+			// IE 8 only supports `Object.defineProperty` on DOM elements
+			try {
+				var object = {};
+				var $defineProperty = Object.defineProperty;
+				var result = $defineProperty(object, object, object) && $defineProperty;
+			} catch(error) {}
+			return result;
+		}());
+		var toString = {}.toString;
+		var endsWith = function(search) {
+			if (this == null) {
+				throw TypeError();
+			}
+			var string = String(this);
+			if (search && toString.call(search) == '[object RegExp]') {
+				throw TypeError();
+			}
+			var stringLength = string.length;
+			var searchString = String(search);
+			var searchLength = searchString.length;
+			var pos = stringLength;
+			if (arguments.length > 1) {
+				var position = arguments[1];
+				if (position !== undefined) {
+					// `ToInteger`
+					pos = position ? Number(position) : 0;
+					if (pos != pos) { // better `isNaN`
+						pos = 0;
+					}
+				}
+			}
+			var end = Math.min(Math.max(pos, 0), stringLength);
+			var start = end - searchLength;
+			if (start < 0) {
+				return false;
+			}
+			var index = -1;
+			while (++index < searchLength) {
+				if (string.charCodeAt(start + index) != searchString.charCodeAt(index)) {
+					return false;
+				}
+			}
+			return true;
+		};
+		if (defineProperty) {
+			defineProperty(String.prototype, 'endsWith', {
+				'value': endsWith,
+				'configurable': true,
+				'writable': true
+			});
+		} else {
+			String.prototype.endsWith = endsWith;
+		}
+	}());
+}
+
+},{}],220:[function(require,module,exports){
+/**
+ * @license
+ * Copyright (c) 2014 The Polymer Project Authors. All rights reserved.
+ * This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+ * The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+ * The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+ * Code distributed by Google as part of the polymer project is also
+ * subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+ */
+
+module.exports = {
+  EXTERNAL_URL: /^(?:https?:)?\/\//,
+  ABS_URL: /(^\/)|(^#)|(^[\w-\d]*:)/,
+  URL: /url\([^)]*\)/g,
+  URL_ATTR: ['href', 'src', 'action', 'style', 'assetpath'],
+  URL_TEMPLATE: '{{.*}}|\\[\\[.*\\]\\]',
+  OLD_POLYMER: 'This version of vulcanize is not compatible with Polymer < 0.8. Please use vulcanize 0.7.x.'
+};
+
+},{}],221:[function(require,module,exports){
+/**
+ * @license
+ * Copyright (c) 2014 The Polymer Project Authors. All rights reserved.
+ * This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+ * The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+ * The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+ * Code distributed by Google as part of the polymer project is also
+ * subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+ */
+
+// jshint node: true
+'use strict';
+
+var constants = require('./constants');
+var dom5 = require('dom5');
+var p = dom5.predicates;
+
+var urlAttrMatchers = constants.URL_ATTR.map(function(attr) {
+  return p.hasAttr(attr);
+});
+
+var urlAttrs = p.OR.apply(null, urlAttrMatchers);
+
+var jsMatcher = p.AND(
+  p.hasTagName('script'),
+  p.OR(
+    p.NOT(
+      p.hasAttr('type')
+    ),
+    p.hasAttrValue('type', 'text/javascript'),
+    p.hasAttrValue('type', 'application/javascript')
+  )
+);
+
+var externalStyle = p.AND(
+  p.hasTagName('link'),
+  p.hasAttrValue('rel', 'stylesheet')
+);
+  // polymer specific external stylesheet
+var polymerExternalStyle = p.AND(
+  p.hasTagName('link'),
+  p.hasAttrValue('rel', 'import'),
+  p.hasAttrValue('type', 'css')
+);
+
+var styleMatcher = p.AND(
+  p.hasTagName('style'),
+  p.OR(
+    p.NOT(
+      p.hasAttr('type')
+    ),
+    p.hasAttrValue('type', 'text/css')
+  )
+);
+
+var targetMatcher = p.AND(
+  p.OR(
+    p.hasTagName('a'),
+    p.hasTagName('form')
+  ),
+  p.NOT(p.hasAttr('target'))
+);
+
+module.exports = {
+  head: p.hasTagName('head'),
+  body: p.hasTagName('body'),
+  base: p.hasTagName('base'),
+  domModule: p.AND(
+    p.hasTagName('dom-module'),
+    p.hasAttr('id'),
+    p.NOT(
+      p.hasAttr('assetpath')
+    )
+  ),
+  meta: p.AND(
+    p.hasTagName('meta'),
+    p.hasAttr('charset')
+  ),
+  polymerElement: p.hasTagName('polymer-element'),
+  urlAttrs: urlAttrs,
+  targetMatcher: targetMatcher,
+  JS: jsMatcher,
+  CSS: styleMatcher,
+  CSS_LINK: externalStyle,
+  POLY_CSS_LINK: polymerExternalStyle,
+  ALL_CSS_LINK: p.OR(externalStyle, polymerExternalStyle),
+  JS_SRC: p.AND(p.hasAttr('src'), jsMatcher),
+  JS_INLINE: p.AND(p.NOT(p.hasAttr('src')), jsMatcher),
+};
+
+},{"./constants":220,"dom5":223}],222:[function(require,module,exports){
+(function (process){
+/**
+ * @license
+ * Copyright (c) 2014 The Polymer Project Authors. All rights reserved.
+ * This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+ * The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+ * The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+ * Code distributed by Google as part of the polymer project is also
+ * subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+ */
+
+// jshint node:true
+'use strict';
+
+var path = require('path');
+// use path.posix on Node > 0.12+, path-posix on 0.10
+var pathPosix = path.posix || require('path-posix');
+var url = require('url');
+var dom5 = require('dom5');
+var matchers = require('./matchers');
+var constants = require('./constants');
+
+var PathResolver = function PathResolver(abspath) {
+  if (abspath) {
+    this.abspath = abspath;
+  }
+};
+
+PathResolver.prototype = {
+  isTemplatedUrl: function isTemplatedUrl(href) {
+    return href.search(constants.URL_TEMPLATE) >= 0;
+  },
+
+  resolvePaths: function resolvePaths(importDoc, importUrl, mainDocUrl) {
+    // rewrite URLs in element attributes
+    var nodes = dom5.queryAll(importDoc, matchers.urlAttrs);
+    var attrValue;
+    for (var i = 0, node; i < nodes.length; i++) {
+      node = nodes[i];
+      for (var j = 0, attr; j < constants.URL_ATTR.length; j++) {
+        attr = constants.URL_ATTR[j];
+        attrValue = dom5.getAttribute(node, attr);
+        if (attrValue && !this.isTemplatedUrl(attrValue)) {
+          var relUrl;
+          if (attr === 'style') {
+            relUrl = this.rewriteURL(importUrl, mainDocUrl, attrValue);
+          } else {
+            relUrl = this.rewriteRelPath(importUrl, mainDocUrl, attrValue);
+            if (attr === 'assetpath' && relUrl.slice(-1) !== '/') {
+              relUrl += '/';
+            }
+          }
+          dom5.setAttribute(node, attr, relUrl);
+        }
+      }
+    }
+    // rewrite URLs in stylesheets
+    var styleNodes = dom5.queryAll(importDoc, matchers.CSS);
+    for (i = 0, node; i < styleNodes.length; i++) {
+      node = styleNodes[i];
+      var styleText = dom5.getTextContent(node);
+      styleText = this.rewriteURL(importUrl, mainDocUrl, styleText);
+      dom5.setTextContent(node, styleText);
+    }
+    // add assetpath to dom-modules in importDoc
+    var domModules = dom5.queryAll(importDoc, matchers.domModule);
+    for (i = 0, node; i < domModules.length; i++) {
+      node = domModules[i];
+      var assetPathUrl = this.rewriteRelPath(importUrl, mainDocUrl, '');
+      assetPathUrl = pathPosix.dirname(assetPathUrl) + '/';
+      dom5.setAttribute(node, 'assetpath', assetPathUrl);
+    }
+  },
+
+  isAbsoluteUrl: function isAbsoluteUrl(href) {
+    return constants.ABS_URL.test(href);
+  },
+
+  rewriteRelPath: function rewriteRelPath(importUrl, mainDocUrl, relUrl) {
+    if (this.isAbsoluteUrl(relUrl)) {
+      return relUrl;
+    }
+    var absUrl = url.resolve(importUrl, relUrl);
+    if (this.abspath) {
+      return url.resolve('/', absUrl);
+    }
+    var parsedFrom = url.parse(mainDocUrl);
+    var parsedTo = url.parse(absUrl);
+    if (parsedFrom.protocol === parsedTo.protocol && parsedFrom.host === parsedTo.host) {
+      var pathname = pathPosix.relative(pathPosix.dirname(parsedFrom.pathname), parsedTo.pathname);
+      return url.format({
+        pathname: pathname,
+        search: parsedTo.search,
+        hash: parsedTo.hash
+      });
+    }
+    return absUrl;
+  },
+
+  rewriteURL: function rewriteURL(importUrl, mainDocUrl, cssText) {
+    return cssText.replace(constants.URL, function(match) {
+      var path = match.replace(/["']/g, "").slice(4, -1);
+      path = this.rewriteRelPath(importUrl, mainDocUrl, path);
+      return 'url("' + path + '")';
+    }.bind(this));
+  },
+
+  // remove effects of <base>
+  acid: function acid(doc, docUrl) {
+    var base = dom5.query(doc, matchers.base);
+    if (base) {
+      var baseUrl = dom5.getAttribute(base, 'href');
+      var baseTarget = dom5.getAttribute(base, 'target');
+      dom5.remove(base);
+      if (baseUrl) {
+        var docBaseUrl = url.resolve(docUrl, baseUrl + '/.index.html');
+        this.resolvePaths(doc, docBaseUrl, docUrl);
+      }
+      if (baseTarget) {
+        var elementsNeedTarget = dom5.queryAll(doc, matchers.targetMatcher);
+        elementsNeedTarget.forEach(function(el) {
+          dom5.setAttribute(el, 'target', baseTarget);
+        });
+      }
+    }
+  },
+
+  pathToUrl: function pathToUrl(filePath) {
+    var absolutePath = path.resolve(filePath);
+    if (process.platform === 'win32') {
+      // encode C:\foo\ as C:/foo/
+      return absolutePath.split('\\').join('/');
+    } else {
+      return absolutePath;
+    }
+  },
+  urlToPath: function urlToPath(uri) {
+    var parsed = url.parse(uri);
+    if (process.platform === 'win32') {
+      return parsed.protocol + parsed.pathname.split('/').join('\\');
+    } else {
+      return (parsed.protocol || '') + parsed.pathname;
+    }
+  }
+};
+
+module.exports = PathResolver;
+
+}).call(this,require('_process'))
+},{"./constants":220,"./matchers":221,"_process":180,"dom5":223,"path":179,"path-posix":245,"url":185}],223:[function(require,module,exports){
+/**
+ * @license
+ * Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
+ * This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+ * The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+ * The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+ * Code distributed by Google as part of the polymer project is also
+ * subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+ */
+
+// jshint node: true
+'use strict';
+
+function getAttributeIndex(element, name) {
+  if (!element.attrs) {
+    return -1;
+  }
+  var n = name.toLowerCase();
+  for (var i = 0; i < element.attrs.length; i++) {
+    if (element.attrs[i].name.toLowerCase() === n) {
+      return i;
+    }
+  }
+  return -1;
+}
+
+/**
+ * @returns {boolean} `true` iff [element] has the attribute [name], `false`
+ *   otherwise.
+ */
+function hasAttribute(element, name) {
+  return getAttributeIndex(element, name) !== -1;
+}
+
+/**
+ * @returns {string|null} The string value of attribute `name`, or `null`.
+ */
+function getAttribute(element, name) {
+  var i = getAttributeIndex(element, name);
+  if (i > -1) {
+    return element.attrs[i].value;
+  }
+  return null;
+}
+
+function setAttribute(element, name, value) {
+  var i = getAttributeIndex(element, name);
+  if (i > -1) {
+    element.attrs[i].value = value;
+  } else {
+    element.attrs.push({name: name, value: value});
+  }
+}
+
+function removeAttribute(element, name) {
+  var i = getAttributeIndex(element, name);
+  if (i > -1) {
+    element.attrs.splice(i, 1);
+  }
+}
+
+function hasTagName(name) {
+  var n = name.toLowerCase();
+  return function(node) {
+    if (!node.tagName) {
+      return false;
+    }
+    return node.tagName.toLowerCase() === n;
+  };
+}
+
+/**
+ * Returns true if `regex.match(tagName)` finds a match.
+ *
+ * This will use the lowercased tagName for comparison.
+ * 
+ * @param  {RegExp} regex
+ * @return {Boolean}
+ */
+function hasMatchingTagName(regex) {
+  return function(node) {
+    if (!node.tagName) {
+      return false;
+    }
+    return regex.test(node.tagName.toLowerCase());
+  };
+}
+
+function hasClass(name) {
+  return function(node) {
+    var attr = getAttribute(node, 'class');
+    if (!attr) {
+      return false;
+    }
+    return attr.split(' ').indexOf(name) > -1;
+  };
+}
+
+function collapseTextRange(parent, start, end) {
+  var text = '';
+  for (var i = start; i <= end; i++) {
+    text += getTextContent(parent.childNodes[i]);
+  }
+  parent.childNodes.splice(start, (end - start) + 1);
+  if (text) {
+    var tn = newTextNode(text);
+    tn.parentNode = parent;
+    parent.childNodes.splice(start, 0, tn);
+  }
+}
+
+/**
+ * Normalize the text inside an element
+ *
+ * Equivalent to `element.normalize()` in the browser
+ * See https://developer.mozilla.org/en-US/docs/Web/API/Node/normalize
+ */
+function normalize(node) {
+  if (!(isElement(node) || isDocument(node) || isDocumentFragment(node))) {
+    return;
+  }
+  var textRangeStart = -1;
+  for (var i = node.childNodes.length - 1, n; i >= 0; i--) {
+    n = node.childNodes[i];
+    if (isTextNode(n)) {
+      if (textRangeStart == -1) {
+        textRangeStart = i;
+      }
+      if (i === 0) {
+        // collapse leading text nodes
+        collapseTextRange(node, 0, textRangeStart);
+      }
+    } else {
+      // recurse
+      normalize(n);
+      // collapse the range after this node
+      if (textRangeStart > -1) {
+        collapseTextRange(node, i + 1, textRangeStart);
+        textRangeStart = -1;
+      }
+    }
+  }
+}
+
+/**
+ * Return the text value of a node or element
+ *
+ * Equivalent to `node.textContent` in the browser
+ */
+function getTextContent(node) {
+  if (isCommentNode(node)) {
+    return node.data;
+  }
+  if (isTextNode(node)) {
+    return node.value;
+  }
+  var subtree = nodeWalkAll(node, isTextNode);
+  return subtree.map(getTextContent).join('');
+}
+
+/**
+ * Set the text value of a node or element
+ *
+ * Equivalent to `node.textContent = value` in the browser
+ */
+function setTextContent(node, value) {
+  if (isCommentNode(node)) {
+    node.data = value;
+  } else if (isTextNode(node)) {
+    node.value = value;
+  } else {
+    var tn = newTextNode(value);
+    tn.parentNode = node;
+    node.childNodes = [tn];
+  }
+}
+
+/**
+ * Match the text inside an element, textnode, or comment
+ *
+ * Note: nodeWalkAll with hasTextValue may return an textnode and its parent if
+ * the textnode is the only child in that parent.
+ */
+function hasTextValue(value) {
+  return function(node) {
+    return getTextContent(node) === value;
+  };
+}
+
+/**
+ * OR an array of predicates
+ */
+function OR(/* ...rules */) {
+  var rules = new Array(arguments.length);
+  for (var i = 0; i < arguments.length; i++) {
+    rules[i] = arguments[i];
+  }
+  return function(node) {
+    for (var i = 0; i < rules.length; i++) {
+      if (rules[i](node)) {
+        return true;
+      }
+    }
+    return false;
+  };
+}
+
+/**
+ * AND an array of predicates
+ */
+function AND(/* ...rules */) {
+  var rules = new Array(arguments.length);
+  for (var i = 0; i < arguments.length; i++) {
+    rules[i] = arguments[i];
+  }
+  return function(node) {
+    for (var i = 0; i < rules.length; i++) {
+      if (!rules[i](node)) {
+        return false;
+      }
+    }
+    return true;
+  };
+}
+
+/**
+ * negate an individual predicate, or a group with AND or OR
+ */
+function NOT(predicateFn) {
+  return function(node) {
+    return !predicateFn(node);
+  };
+}
+
+/**
+ * Returns a predicate that matches any node with a parent matching `predicateFn`.
+ */
+function parentMatches(predicateFn) {
+  return function(node) {
+    var parent = node.parentNode;
+    while(parent !== undefined) {
+      if (predicateFn(parent)) {
+        return true;
+      }
+      parent = parent.parentNode;
+    }
+    return false;
+  };
+}
+
+function hasAttr(attr) {
+  return function(node) {
+    return getAttributeIndex(node, attr) > -1;
+  };
+}
+
+function hasAttrValue(attr, value) {
+  return function(node) {
+    return getAttribute(node, attr) === value;
+  };
+}
+
+function isDocument(node) {
+  return node.nodeName === '#document';
+}
+
+function isDocumentFragment(node) {
+  return node.nodeName === '#document-fragment';
+}
+
+function isElement(node) {
+  return node.nodeName === node.tagName;
+}
+
+function isTextNode(node) {
+  return node.nodeName === '#text';
+}
+
+function isCommentNode(node) {
+  return node.nodeName === '#comment';
+}
+
+/**
+ * Applies `mapfn` to `node` and the tree below `node`, returning a flattened
+ * list of results.
+ * @return {Array}
+ */
+function treeMap(node, mapfn) {
+  var results = [];
+  nodeWalk(node, function(node){
+    results = results.concat(mapfn(node));
+    return false;
+  });
+  return results;
+}
+
+/**
+ * Walk the tree down from `node`, applying the `predicate` function.
+ * Return the first node that matches the given predicate.
+ *
+ * @returns {Node} `null` if no node matches, parse5 node object if a node
+ * matches
+ */
+function nodeWalk(node, predicate) {
+  if (predicate(node)) {
+    return node;
+  }
+  var match = null;
+  if (node.childNodes) {
+    for (var i = 0; i < node.childNodes.length; i++) {
+      match = nodeWalk(node.childNodes[i], predicate);
+      if (match) {
+        break;
+      }
+    }
+  }
+  return match;
+}
+
+/**
+ * Walk the tree down from `node`, applying the `predicate` function.
+ * All nodes matching the predicate function from `node` to leaves will be
+ * returned.
+ *
+ * @returns {Array[Node]}
+ */
+function nodeWalkAll(node, predicate, matches) {
+  if (!matches) {
+    matches = [];
+  }
+  if (predicate(node)) {
+    matches.push(node);
+  }
+  if (node.childNodes) {
+    for (var i = 0; i < node.childNodes.length; i++) {
+      nodeWalkAll(node.childNodes[i], predicate, matches);
+    }
+  }
+  return matches;
+}
+
+function _reverseNodeWalkAll(node, predicate, matches) {
+  if (!matches) {
+    matches = [];
+  }
+  if (node.childNodes) {
+    for (var i = node.childNodes.length - 1; i >= 0; i--) {
+      nodeWalkAll(node.childNodes[i], predicate, matches);
+    }
+  }
+  if (predicate(node)) {
+    matches.push(node);
+  }
+  return matches;
+}
+
+/**
+ * Equivalent to `nodeWalkAll`, but only returns nodes that are either 
+ * ancestors or earlier cousins/siblings in the document.
+ *
+ * Nodes are returned in reverse document order, starting from `node`.
+ */
+function nodeWalkAllPrior(node, predicate, matches) {
+  if (!matches) {
+    matches = [];
+  }
+  if (predicate(node)) {
+    matches.push(node);
+  }
+  // Search our earlier siblings and their descendents.
+  var parent = node.parentNode;
+  if (parent) {
+    var idx = parent.childNodes.indexOf(node);
+    var siblings = parent.childNodes.slice(0, idx);
+    for (var i = siblings.length-1; i >= 0; i--) {
+      _reverseNodeWalkAll(siblings[i], predicate, matches);
+    }
+    nodeWalkAllPrior(parent, predicate, matches);
+  }
+  return matches;
+}
+
+/**
+ * Equivalent to `nodeWalk`, but only matches elements
+ *
+ * @returns {Element}
+ */
+function query(node, predicate) {
+  var elementPredicate = AND(isElement, predicate);
+  return nodeWalk(node, elementPredicate);
+}
+
+/**
+ * Equivalent to `nodeWalkAll`, but only matches elements
+ *
+ * @return {Array[Element]}
+ */
+function queryAll(node, predicate, matches) {
+  var elementPredicate = AND(isElement, predicate);
+  return nodeWalkAll(node, elementPredicate, matches);
+}
+
+function newTextNode(value) {
+  return {
+    nodeName: '#text',
+    value: value,
+    parentNode: null
+  };
+}
+
+function newCommentNode(comment) {
+  return {
+    nodeName: '#comment',
+    data: comment,
+    parentNode: null
+  };
+}
+
+function newElement(tagName, namespace) {
+  return {
+    nodeName: tagName,
+    tagName: tagName,
+    childNodes: [],
+    namespaceURI: namespace || 'http://www.w3.org/1999/xhtml',
+    attrs: [],
+    parentNode: null,
+  };
+}
+
+function replace(oldNode, newNode) {
+  insertBefore(oldNode.parentNode, oldNode, newNode);
+  remove(oldNode);
+}
+
+function remove(node) {
+  var parent = node.parentNode;
+  if (parent) {
+    var idx = parent.childNodes.indexOf(node);
+    parent.childNodes.splice(idx, 1);
+  }
+  node.parentNode = null;
+}
+
+function insertBefore(parent, oldNode, newNode) {
+  remove(newNode);
+  var idx = parent.childNodes.indexOf(oldNode);
+  parent.childNodes.splice(idx, 0, newNode);
+  newNode.parentNode = parent;
+}
+
+function append(parent, node) {
+  remove(node);
+  parent.childNodes.push(node);
+  node.parentNode = parent;
+}
+
+var parse5 = require('parse5');
+function parse(text, options) {
+  var parser = new parse5.Parser(parse5.TreeAdapters.default, options);
+  return parser.parse(text);
+}
+
+function parseFragment(text) {
+  var parser = new parse5.Parser();
+  return parser.parseFragment(text);
+}
+
+function serialize(ast) {
+  var serializer = new parse5.Serializer();
+  return serializer.serialize(ast);
+}
+
+module.exports = {
+  getAttribute: getAttribute,
+  hasAttribute: hasAttribute,
+  setAttribute: setAttribute,
+  removeAttribute: removeAttribute,
+  getTextContent: getTextContent,
+  setTextContent: setTextContent,
+  remove: remove,
+  replace: replace,
+  append: append,
+  insertBefore: insertBefore,
+  normalize: normalize,
+  isDocument: isDocument,
+  isDocumentFragment: isDocumentFragment,
+  isElement: isElement,
+  isTextNode: isTextNode,
+  isCommentNode: isCommentNode,
+  query: query,
+  queryAll: queryAll,
+  nodeWalk: nodeWalk,
+  nodeWalkAll: nodeWalkAll,
+  nodeWalkAllPrior: nodeWalkAllPrior,
+  treeMap: treeMap,
+  predicates: {
+    hasClass: hasClass,
+    hasAttr: hasAttr,
+    hasAttrValue: hasAttrValue,
+    hasMatchingTagName: hasMatchingTagName,
+    hasTagName: hasTagName,
+    hasTextValue: hasTextValue,
+    AND: AND,
+    OR: OR,
+    NOT: NOT,
+    parentMatches: parentMatches
+  },
+  constructors: {
+    text: newTextNode,
+    comment: newCommentNode,
+    element: newElement
+  },
+  parse: parse,
+  parseFragment: parseFragment,
+  serialize: serialize
+};
+
+},{"parse5":224}],224:[function(require,module,exports){
 'use strict';
 
 exports.Parser = require('./lib/tree_construction/parser');
@@ -36985,7 +37963,7 @@ exports.TreeAdapters = {
     htmlparser2: require('./lib/tree_adapters/htmlparser2')
 };
 
-},{"./lib/jsdom/jsdom_parser":225,"./lib/serialization/serializer":227,"./lib/simple_api/simple_api_parser":228,"./lib/tree_adapters/default":234,"./lib/tree_adapters/htmlparser2":235,"./lib/tree_construction/parser":239}],220:[function(require,module,exports){
+},{"./lib/jsdom/jsdom_parser":230,"./lib/serialization/serializer":232,"./lib/simple_api/simple_api_parser":233,"./lib/tree_adapters/default":239,"./lib/tree_adapters/htmlparser2":240,"./lib/tree_construction/parser":244}],225:[function(require,module,exports){
 'use strict';
 
 //Const
@@ -37121,7 +38099,7 @@ exports.serializeContent = function (name, publicId, systemId) {
     return str;
 };
 
-},{}],221:[function(require,module,exports){
+},{}],226:[function(require,module,exports){
 'use strict';
 
 var Tokenizer = require('../tokenization/tokenizer'),
@@ -37380,7 +38358,7 @@ exports.isHtmlIntegrationPoint = function (tn, ns, attrs) {
     return ns === NS.SVG && (tn === $.FOREIGN_OBJECT || tn === $.DESC || tn === $.TITLE);
 };
 
-},{"../tokenization/tokenizer":233,"./html":222}],222:[function(require,module,exports){
+},{"../tokenization/tokenizer":238,"./html":227}],227:[function(require,module,exports){
 'use strict';
 
 var NS = exports.NAMESPACES = {
@@ -37650,7 +38628,7 @@ SPECIAL_ELEMENTS[NS.SVG][$.TITLE] = true;
 SPECIAL_ELEMENTS[NS.SVG][$.FOREIGN_OBJECT] = true;
 SPECIAL_ELEMENTS[NS.SVG][$.DESC] = true;
 
-},{}],223:[function(require,module,exports){
+},{}],228:[function(require,module,exports){
 'use strict';
 
 exports.REPLACEMENT_CHARACTER = '\uFFFD';
@@ -37700,7 +38678,7 @@ exports.CODE_POINT_SEQUENCES = {
     SYSTEM_STRING: [0x53, 0x59, 0x53, 0x54, 0x45, 0x4D] //SYSTEM
 };
 
-},{}],224:[function(require,module,exports){
+},{}],229:[function(require,module,exports){
 'use strict';
 
 exports.mergeOptions = function (defaults, options) {
@@ -37715,7 +38693,7 @@ exports.mergeOptions = function (defaults, options) {
     }, {});
 };
 
-},{}],225:[function(require,module,exports){
+},{}],230:[function(require,module,exports){
 (function (process){
 'use strict';
 
@@ -37757,7 +38735,7 @@ exports.parseInnerHtml = function (innerHtml, contextElement, treeAdapter) {
     return parser.parseFragment(innerHtml, contextElement);
 };
 }).call(this,require('_process'))
-},{"../tree_construction/parser":239,"./parsing_unit":226,"_process":180}],226:[function(require,module,exports){
+},{"../tree_construction/parser":244,"./parsing_unit":231,"_process":180}],231:[function(require,module,exports){
 'use strict';
 
 var ParsingUnit = module.exports = function (parser) {
@@ -37812,7 +38790,7 @@ ParsingUnit.prototype.done = function (callback) {
     return this;
 };
 
-},{}],227:[function(require,module,exports){
+},{}],232:[function(require,module,exports){
 'use strict';
 
 var DefaultTreeAdapter = require('../tree_adapters/default'),
@@ -37993,7 +38971,7 @@ Serializer.prototype._serializeDocumentTypeNode = function (node) {
     this.html += '<' + Doctype.serializeContent(name, publicId, systemId) + '>';
 };
 
-},{"../common/doctype":220,"../common/html":222,"../common/utils":224,"../tree_adapters/default":234}],228:[function(require,module,exports){
+},{"../common/doctype":225,"../common/html":227,"../common/utils":229,"../tree_adapters/default":239}],233:[function(require,module,exports){
 'use strict';
 
 var Tokenizer = require('../tokenization/tokenizer'),
@@ -38102,7 +39080,7 @@ SimpleApiParser.prototype._emitPendingText = function () {
     }
 };
 
-},{"../common/utils":224,"../tokenization/tokenizer":233,"./tokenizer_proxy":229}],229:[function(require,module,exports){
+},{"../common/utils":229,"../tokenization/tokenizer":238,"./tokenizer_proxy":234}],234:[function(require,module,exports){
 'use strict';
 
 var Tokenizer = require('../tokenization/tokenizer'),
@@ -38226,7 +39204,7 @@ TokenizerProxy.prototype._handleEndTagToken = function (token) {
         this._leaveCurrentNamespace();
 };
 
-},{"../common/foreign_content":221,"../common/html":222,"../common/unicode":223,"../tokenization/tokenizer":233}],230:[function(require,module,exports){
+},{"../common/foreign_content":226,"../common/html":227,"../common/unicode":228,"../tokenization/tokenizer":238}],235:[function(require,module,exports){
 'use strict';
 
 exports.assign = function (tokenizer) {
@@ -38308,7 +39286,7 @@ exports.assign = function (tokenizer) {
         });
 };
 
-},{}],231:[function(require,module,exports){
+},{}],236:[function(require,module,exports){
 'use strict';
 
 //NOTE: this file contains auto generated trie structure that is used for named entity references consumption
@@ -38368,7 +39346,7 @@ module.exports = {
     0x5A: {l: {0x61: {l: {0x63: {l: {0x75: {l: {0x74: {l: {0x65: {l: {0x3B: {c: [377]}}}}}}}}}}}, 0x63: {l: {0x61: {l: {0x72: {l: {0x6F: {l: {0x6E: {l: {0x3B: {c: [381]}}}}}}}}}, 0x79: {l: {0x3B: {c: [1047]}}}}}, 0x64: {l: {0x6F: {l: {0x74: {l: {0x3B: {c: [379]}}}}}}}, 0x65: {l: {0x72: {l: {0x6F: {l: {0x57: {l: {0x69: {l: {0x64: {l: {0x74: {l: {0x68: {l: {0x53: {l: {0x70: {l: {0x61: {l: {0x63: {l: {0x65: {l: {0x3B: {c: [8203]}}}}}}}}}}}}}}}}}}}}}}}}}, 0x74: {l: {0x61: {l: {0x3B: {c: [918]}}}}}}}, 0x66: {l: {0x72: {l: {0x3B: {c: [8488]}}}}}, 0x48: {l: {0x63: {l: {0x79: {l: {0x3B: {c: [1046]}}}}}}}, 0x6F: {l: {0x70: {l: {0x66: {l: {0x3B: {c: [8484]}}}}}}}, 0x73: {l: {0x63: {l: {0x72: {l: {0x3B: {c: [119989]}}}}}}}}},
     0x7A: {l: {0x61: {l: {0x63: {l: {0x75: {l: {0x74: {l: {0x65: {l: {0x3B: {c: [378]}}}}}}}}}}}, 0x63: {l: {0x61: {l: {0x72: {l: {0x6F: {l: {0x6E: {l: {0x3B: {c: [382]}}}}}}}}}, 0x79: {l: {0x3B: {c: [1079]}}}}}, 0x64: {l: {0x6F: {l: {0x74: {l: {0x3B: {c: [380]}}}}}}}, 0x65: {l: {0x65: {l: {0x74: {l: {0x72: {l: {0x66: {l: {0x3B: {c: [8488]}}}}}}}}}, 0x74: {l: {0x61: {l: {0x3B: {c: [950]}}}}}}}, 0x66: {l: {0x72: {l: {0x3B: {c: [120119]}}}}}, 0x68: {l: {0x63: {l: {0x79: {l: {0x3B: {c: [1078]}}}}}}}, 0x69: {l: {0x67: {l: {0x72: {l: {0x61: {l: {0x72: {l: {0x72: {l: {0x3B: {c: [8669]}}}}}}}}}}}}}, 0x6F: {l: {0x70: {l: {0x66: {l: {0x3B: {c: [120171]}}}}}}}, 0x73: {l: {0x63: {l: {0x72: {l: {0x3B: {c: [120015]}}}}}}}, 0x77: {l: {0x6A: {l: {0x3B: {c: [8205]}}}, 0x6E: {l: {0x6A: {l: {0x3B: {c: [8204]}}}}}}}}}
 };
-},{}],232:[function(require,module,exports){
+},{}],237:[function(require,module,exports){
 'use strict';
 
 var UNICODE = require('../common/unicode');
@@ -38485,7 +39463,7 @@ Preprocessor.prototype.retreat = function () {
     this.pos--;
 };
 
-},{"../common/unicode":223}],233:[function(require,module,exports){
+},{"../common/unicode":228}],238:[function(require,module,exports){
 'use strict';
 
 var Preprocessor = require('./preprocessor'),
@@ -40804,7 +41782,7 @@ _[CDATA_SECTION_STATE] = function cdataSectionState(cp) {
     }
 };
 
-},{"../common/unicode":223,"./location_info_mixin":230,"./named_entity_trie":231,"./preprocessor":232}],234:[function(require,module,exports){
+},{"../common/unicode":228,"./location_info_mixin":235,"./named_entity_trie":236,"./preprocessor":237}],239:[function(require,module,exports){
 'use strict';
 
 //Node construction
@@ -41006,7 +41984,7 @@ exports.isElementNode = function (node) {
     return !!node.tagName;
 };
 
-},{}],235:[function(require,module,exports){
+},{}],240:[function(require,module,exports){
 'use strict';
 
 var Doctype = require('../common/doctype');
@@ -41325,7 +42303,7 @@ exports.isElementNode = function (node) {
     return !!node.attribs;
 };
 
-},{"../common/doctype":220}],236:[function(require,module,exports){
+},{"../common/doctype":225}],241:[function(require,module,exports){
 'use strict';
 
 //Const
@@ -41494,7 +42472,7 @@ FormattingElementList.prototype.getElementEntry = function (element) {
     return null;
 };
 
-},{}],237:[function(require,module,exports){
+},{}],242:[function(require,module,exports){
 'use strict';
 
 var OpenElementStack = require('./open_element_stack'),
@@ -41506,34 +42484,64 @@ var OpenElementStack = require('./open_element_stack'),
 var $ = HTML.TAG_NAMES;
 
 
-function setEndLocation(element, endTagToken) {
-    if (element.__location)
-        element.__location.end = endTagToken.location.end;
+function setEndLocation(element, closingToken, treeAdapter) {
+    var loc = element.__location;
+
+    if (!loc)
+        return;
+
+    if (!loc.startTag) {
+        loc.startTag = {
+            start: loc.start,
+            end: loc.end
+        };
+    }
+
+    if (closingToken.location) {
+        var tn = treeAdapter.getTagName(element),
+            // NOTE: For cases like <p> <p> </p> - First 'p' closes without a closing tag and
+            // for cases like <td> <p> </td> - 'p' closes without a closing tag
+            isClosingEndTag = closingToken.type === Tokenizer.END_TAG_TOKEN &&
+                              tn === closingToken.tagName;
+
+        if (isClosingEndTag) {
+            loc.endTag = {
+                start: closingToken.location.start,
+                end: closingToken.location.end
+            };
+        }
+
+        loc.end = closingToken.location.end;
+    }
 }
 
 //NOTE: patch open elements stack, so we can assign end location for the elements
 function patchOpenElementsStack(stack, parser) {
+    var treeAdapter = parser.treeAdapter;
+
     stack.pop = function () {
-        setEndLocation(this.current, parser.currentToken);
+        setEndLocation(this.current, parser.currentToken, treeAdapter);
         OpenElementStack.prototype.pop.call(this);
     };
 
     stack.popAllUpToHtmlElement = function () {
         for (var i = this.stackTop; i > 0; i--)
-            setEndLocation(this.items[i], parser.currentToken);
+            setEndLocation(this.items[i], parser.currentToken, treeAdapter);
 
         OpenElementStack.prototype.popAllUpToHtmlElement.call(this);
     };
 
     stack.remove = function (element) {
-        setEndLocation(element, parser.currentToken);
+        setEndLocation(element, parser.currentToken, treeAdapter);
         OpenElementStack.prototype.remove.call(this, element);
     };
 }
 
 exports.assign = function (parser) {
     //NOTE: obtain Parser proto this way to avoid module circular references
-    var parserProto = Object.getPrototypeOf(parser);
+    var parserProto = Object.getPrototypeOf(parser),
+        treeAdapter = parser.treeAdapter;
+
 
     //NOTE: patch _reset method
     parser._reset = function (html, document, fragmentContext) {
@@ -41559,12 +42567,12 @@ exports.assign = function (parser) {
         //their end location explicitly.
         if (token.type === Tokenizer.END_TAG_TOKEN &&
             (token.tagName === $.HTML ||
-             (token.tagName === $.BODY && this.openElements.hasInScope($.BODY)))) {
+            (token.tagName === $.BODY && this.openElements.hasInScope($.BODY)))) {
             for (var i = this.openElements.stackTop; i >= 0; i--) {
                 var element = this.openElements.items[i];
 
                 if (this.treeAdapter.getTagName(element) === token.tagName) {
-                    setEndLocation(element, token);
+                    setEndLocation(element, token, treeAdapter);
                     break;
                 }
             }
@@ -41663,7 +42671,7 @@ exports.assign = function (parser) {
 };
 
 
-},{"../common/html":222,"../tokenization/tokenizer":233,"./open_element_stack":238}],238:[function(require,module,exports){
+},{"../common/html":227,"../tokenization/tokenizer":238,"./open_element_stack":243}],243:[function(require,module,exports){
 'use strict';
 
 var HTML = require('../common/html');
@@ -42044,7 +43052,7 @@ OpenElementStack.prototype.generateImpliedEndTagsWithExclusion = function (exclu
         this.pop();
 };
 
-},{"../common/html":222}],239:[function(require,module,exports){
+},{"../common/html":227}],244:[function(require,module,exports){
 'use strict';
 
 var Tokenizer = require('../tokenization/tokenizer'),
@@ -44873,848 +45881,7 @@ function endTagInForeignContent(p, token) {
     }
 }
 
-},{"../common/doctype":220,"../common/foreign_content":221,"../common/html":222,"../common/unicode":223,"../common/utils":224,"../tokenization/tokenizer":233,"../tree_adapters/default":234,"./formatting_element_list":236,"./location_info_mixin":237,"./open_element_stack":238}],240:[function(require,module,exports){
-/*! http://mths.be/endswith v0.2.0 by @mathias */
-if (!String.prototype.endsWith) {
-	(function() {
-		'use strict'; // needed to support `apply`/`call` with `undefined`/`null`
-		var defineProperty = (function() {
-			// IE 8 only supports `Object.defineProperty` on DOM elements
-			try {
-				var object = {};
-				var $defineProperty = Object.defineProperty;
-				var result = $defineProperty(object, object, object) && $defineProperty;
-			} catch(error) {}
-			return result;
-		}());
-		var toString = {}.toString;
-		var endsWith = function(search) {
-			if (this == null) {
-				throw TypeError();
-			}
-			var string = String(this);
-			if (search && toString.call(search) == '[object RegExp]') {
-				throw TypeError();
-			}
-			var stringLength = string.length;
-			var searchString = String(search);
-			var searchLength = searchString.length;
-			var pos = stringLength;
-			if (arguments.length > 1) {
-				var position = arguments[1];
-				if (position !== undefined) {
-					// `ToInteger`
-					pos = position ? Number(position) : 0;
-					if (pos != pos) { // better `isNaN`
-						pos = 0;
-					}
-				}
-			}
-			var end = Math.min(Math.max(pos, 0), stringLength);
-			var start = end - searchLength;
-			if (start < 0) {
-				return false;
-			}
-			var index = -1;
-			while (++index < searchLength) {
-				if (string.charCodeAt(start + index) != searchString.charCodeAt(index)) {
-					return false;
-				}
-			}
-			return true;
-		};
-		if (defineProperty) {
-			defineProperty(String.prototype, 'endsWith', {
-				'value': endsWith,
-				'configurable': true,
-				'writable': true
-			});
-		} else {
-			String.prototype.endsWith = endsWith;
-		}
-	}());
-}
-
-},{}],241:[function(require,module,exports){
-/**
- * @license
- * Copyright (c) 2014 The Polymer Project Authors. All rights reserved.
- * This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
- * The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
- * The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
- * Code distributed by Google as part of the polymer project is also
- * subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
- */
-
-module.exports = {
-  EXTERNAL_URL: /^(?:https?:)?\/\//,
-  ABS_URL: /(^\/)|(^#)|(^[\w-\d]*:)/,
-  URL: /url\([^)]*\)/g,
-  URL_ATTR: ['href', 'src', 'action', 'style', 'assetpath'],
-  URL_TEMPLATE: '{{.*}}|\\[\\[.*\\]\\]',
-  OLD_POLYMER: 'This version of vulcanize is not compatible with Polymer < 0.8. Please use vulcanize 0.7.x.'
-};
-
-},{}],242:[function(require,module,exports){
-/**
- * @license
- * Copyright (c) 2014 The Polymer Project Authors. All rights reserved.
- * This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
- * The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
- * The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
- * Code distributed by Google as part of the polymer project is also
- * subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
- */
-
-// jshint node: true
-'use strict';
-
-var constants = require('./constants');
-var dom5 = require('dom5');
-var p = dom5.predicates;
-
-var urlAttrMatchers = constants.URL_ATTR.map(function(attr) {
-  return p.hasAttr(attr);
-});
-
-var urlAttrs = p.OR.apply(null, urlAttrMatchers);
-
-var jsMatcher = p.AND(
-  p.hasTagName('script'),
-  p.OR(
-    p.NOT(
-      p.hasAttr('type')
-    ),
-    p.hasAttrValue('type', 'text/javascript'),
-    p.hasAttrValue('type', 'application/javascript')
-  )
-);
-
-var externalStyle = p.AND(
-  p.hasTagName('link'),
-  p.hasAttrValue('rel', 'stylesheet')
-);
-  // polymer specific external stylesheet
-var polymerExternalStyle = p.AND(
-  p.hasTagName('link'),
-  p.hasAttrValue('rel', 'import'),
-  p.hasAttrValue('type', 'css')
-);
-
-var styleMatcher = p.AND(
-  p.hasTagName('style'),
-  p.OR(
-    p.NOT(
-      p.hasAttr('type')
-    ),
-    p.hasAttrValue('type', 'text/css')
-  )
-);
-
-var targetMatcher = p.AND(
-  p.OR(
-    p.hasTagName('a'),
-    p.hasTagName('form')
-  ),
-  p.NOT(p.hasAttr('target'))
-);
-
-module.exports = {
-  head: p.hasTagName('head'),
-  body: p.hasTagName('body'),
-  base: p.hasTagName('base'),
-  domModule: p.AND(
-    p.hasTagName('dom-module'),
-    p.hasAttr('id'),
-    p.NOT(
-      p.hasAttr('assetpath')
-    )
-  ),
-  meta: p.AND(
-    p.hasTagName('meta'),
-    p.hasAttr('charset')
-  ),
-  polymerElement: p.hasTagName('polymer-element'),
-  urlAttrs: urlAttrs,
-  targetMatcher: targetMatcher,
-  JS: jsMatcher,
-  CSS: styleMatcher,
-  CSS_LINK: externalStyle,
-  POLY_CSS_LINK: polymerExternalStyle,
-  ALL_CSS_LINK: p.OR(externalStyle, polymerExternalStyle),
-  JS_SRC: p.AND(p.hasAttr('src'), jsMatcher),
-  JS_INLINE: p.AND(p.NOT(p.hasAttr('src')), jsMatcher),
-};
-
-},{"./constants":241,"dom5":244}],243:[function(require,module,exports){
-(function (process){
-/**
- * @license
- * Copyright (c) 2014 The Polymer Project Authors. All rights reserved.
- * This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
- * The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
- * The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
- * Code distributed by Google as part of the polymer project is also
- * subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
- */
-
-// jshint node:true
-'use strict';
-
-var path = require('path');
-// use path.posix on Node > 0.12+, path-posix on 0.10
-var pathPosix = path.posix || require('path-posix');
-var url = require('url');
-var dom5 = require('dom5');
-var matchers = require('./matchers');
-var constants = require('./constants');
-
-var PathResolver = function PathResolver(abspath) {
-  if (abspath) {
-    this.abspath = abspath;
-  }
-};
-
-PathResolver.prototype = {
-  isTemplatedUrl: function isTemplatedUrl(href) {
-    return href.search(constants.URL_TEMPLATE) >= 0;
-  },
-
-  resolvePaths: function resolvePaths(importDoc, importUrl, mainDocUrl) {
-    // rewrite URLs in element attributes
-    var nodes = dom5.queryAll(importDoc, matchers.urlAttrs);
-    var attrValue;
-    for (var i = 0, node; i < nodes.length; i++) {
-      node = nodes[i];
-      for (var j = 0, attr; j < constants.URL_ATTR.length; j++) {
-        attr = constants.URL_ATTR[j];
-        attrValue = dom5.getAttribute(node, attr);
-        if (attrValue && !this.isTemplatedUrl(attrValue)) {
-          var relUrl;
-          if (attr === 'style') {
-            relUrl = this.rewriteURL(importUrl, mainDocUrl, attrValue);
-          } else {
-            relUrl = this.rewriteRelPath(importUrl, mainDocUrl, attrValue);
-            if (attr === 'assetpath' && relUrl.slice(-1) !== '/') {
-              relUrl += '/';
-            }
-          }
-          dom5.setAttribute(node, attr, relUrl);
-        }
-      }
-    }
-    // rewrite URLs in stylesheets
-    var styleNodes = dom5.queryAll(importDoc, matchers.CSS);
-    for (i = 0, node; i < styleNodes.length; i++) {
-      node = styleNodes[i];
-      var styleText = dom5.getTextContent(node);
-      styleText = this.rewriteURL(importUrl, mainDocUrl, styleText);
-      dom5.setTextContent(node, styleText);
-    }
-    // add assetpath to dom-modules in importDoc
-    var domModules = dom5.queryAll(importDoc, matchers.domModule);
-    for (i = 0, node; i < domModules.length; i++) {
-      node = domModules[i];
-      var assetPathUrl = this.rewriteRelPath(importUrl, mainDocUrl, '');
-      assetPathUrl = pathPosix.dirname(assetPathUrl) + '/';
-      dom5.setAttribute(node, 'assetpath', assetPathUrl);
-    }
-  },
-
-  isAbsoluteUrl: function isAbsoluteUrl(href) {
-    return constants.ABS_URL.test(href);
-  },
-
-  rewriteRelPath: function rewriteRelPath(importUrl, mainDocUrl, relUrl) {
-    if (this.isAbsoluteUrl(relUrl)) {
-      return relUrl;
-    }
-    var absUrl = url.resolve(importUrl, relUrl);
-    if (this.abspath) {
-      return url.resolve('/', absUrl);
-    }
-    var parsedFrom = url.parse(mainDocUrl);
-    var parsedTo = url.parse(absUrl);
-    if (parsedFrom.protocol === parsedTo.protocol && parsedFrom.host === parsedTo.host) {
-      var pathname = pathPosix.relative(pathPosix.dirname(parsedFrom.pathname), parsedTo.pathname);
-      return url.format({
-        pathname: pathname,
-        search: parsedTo.search,
-        hash: parsedTo.hash
-      });
-    }
-    return absUrl;
-  },
-
-  rewriteURL: function rewriteURL(importUrl, mainDocUrl, cssText) {
-    return cssText.replace(constants.URL, function(match) {
-      var path = match.replace(/["']/g, "").slice(4, -1);
-      path = this.rewriteRelPath(importUrl, mainDocUrl, path);
-      return 'url("' + path + '")';
-    }.bind(this));
-  },
-
-  // remove effects of <base>
-  acid: function acid(doc, docUrl) {
-    var base = dom5.query(doc, matchers.base);
-    if (base) {
-      var baseUrl = dom5.getAttribute(base, 'href');
-      var baseTarget = dom5.getAttribute(base, 'target');
-      dom5.remove(base);
-      if (baseUrl) {
-        var docBaseUrl = url.resolve(docUrl, baseUrl + '/.index.html');
-        this.resolvePaths(doc, docBaseUrl, docUrl);
-      }
-      if (baseTarget) {
-        var elementsNeedTarget = dom5.queryAll(doc, matchers.targetMatcher);
-        elementsNeedTarget.forEach(function(el) {
-          dom5.setAttribute(el, 'target', baseTarget);
-        });
-      }
-    }
-  },
-
-  pathToUrl: function pathToUrl(filePath) {
-    var absolutePath = path.resolve(filePath);
-    if (process.platform === 'win32') {
-      // encode C:\foo\ as C:/foo/
-      return absolutePath.split('\\').join('/');
-    } else {
-      return absolutePath;
-    }
-  },
-  urlToPath: function urlToPath(uri) {
-    var parsed = url.parse(uri);
-    if (process.platform === 'win32') {
-      return parsed.protocol + parsed.pathname.split('/').join('\\');
-    } else {
-      return (parsed.protocol || '') + parsed.pathname;
-    }
-  }
-};
-
-module.exports = PathResolver;
-
-}).call(this,require('_process'))
-},{"./constants":241,"./matchers":242,"_process":180,"dom5":244,"path":179,"path-posix":245,"url":185}],244:[function(require,module,exports){
-/**
- * @license
- * Copyright (c) 2015 The Polymer Project Authors. All rights reserved.
- * This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
- * The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
- * The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
- * Code distributed by Google as part of the polymer project is also
- * subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
- */
-
-// jshint node: true
-'use strict';
-
-function getAttributeIndex(element, name) {
-  if (!element.attrs) {
-    return -1;
-  }
-  var n = name.toLowerCase();
-  for (var i = 0; i < element.attrs.length; i++) {
-    if (element.attrs[i].name.toLowerCase() === n) {
-      return i;
-    }
-  }
-  return -1;
-}
-
-/**
- * @returns {boolean} `true` iff [element] has the attribute [name], `false`
- *   otherwise.
- */
-function hasAttribute(element, name) {
-  return getAttributeIndex(element, name) !== -1;
-}
-
-/**
- * @returns {string|null} The string value of attribute `name`, or `null`.
- */
-function getAttribute(element, name) {
-  var i = getAttributeIndex(element, name);
-  if (i > -1) {
-    return element.attrs[i].value;
-  }
-  return null;
-}
-
-function setAttribute(element, name, value) {
-  var i = getAttributeIndex(element, name);
-  if (i > -1) {
-    element.attrs[i].value = value;
-  } else {
-    element.attrs.push({name: name, value: value});
-  }
-}
-
-function removeAttribute(element, name) {
-  var i = getAttributeIndex(element, name);
-  if (i > -1) {
-    element.attrs.splice(i, 1);
-  }
-}
-
-function hasTagName(name) {
-  var n = name.toLowerCase();
-  return function(node) {
-    if (!node.tagName) {
-      return false;
-    }
-    return node.tagName.toLowerCase() === n;
-  };
-}
-
-/**
- * Returns true if `regex.match(tagName)` finds a match.
- *
- * This will use the lowercased tagName for comparison.
- * 
- * @param  {RegExp} regex
- * @return {Boolean}
- */
-function hasMatchingTagName(regex) {
-  return function(node) {
-    if (!node.tagName) {
-      return false;
-    }
-    return regex.test(node.tagName.toLowerCase());
-  };
-}
-
-function hasClass(name) {
-  return function(node) {
-    var attr = getAttribute(node, 'class');
-    if (!attr) {
-      return false;
-    }
-    return attr.split(' ').indexOf(name) > -1;
-  };
-}
-
-function collapseTextRange(parent, start, end) {
-  var text = '';
-  for (var i = start; i <= end; i++) {
-    text += getTextContent(parent.childNodes[i]);
-  }
-  parent.childNodes.splice(start, (end - start) + 1);
-  if (text) {
-    var tn = newTextNode(text);
-    tn.parentNode = parent;
-    parent.childNodes.splice(start, 0, tn);
-  }
-}
-
-/**
- * Normalize the text inside an element
- *
- * Equivalent to `element.normalize()` in the browser
- * See https://developer.mozilla.org/en-US/docs/Web/API/Node/normalize
- */
-function normalize(node) {
-  if (!(isElement(node) || isDocument(node) || isDocumentFragment(node))) {
-    return;
-  }
-  var textRangeStart = -1;
-  for (var i = node.childNodes.length - 1, n; i >= 0; i--) {
-    n = node.childNodes[i];
-    if (isTextNode(n)) {
-      if (textRangeStart == -1) {
-        textRangeStart = i;
-      }
-      if (i === 0) {
-        // collapse leading text nodes
-        collapseTextRange(node, 0, textRangeStart);
-      }
-    } else {
-      // recurse
-      normalize(n);
-      // collapse the range after this node
-      if (textRangeStart > -1) {
-        collapseTextRange(node, i + 1, textRangeStart);
-        textRangeStart = -1;
-      }
-    }
-  }
-}
-
-/**
- * Return the text value of a node or element
- *
- * Equivalent to `node.textContent` in the browser
- */
-function getTextContent(node) {
-  if (isCommentNode(node)) {
-    return node.data;
-  }
-  if (isTextNode(node)) {
-    return node.value;
-  }
-  var subtree = nodeWalkAll(node, isTextNode);
-  return subtree.map(getTextContent).join('');
-}
-
-/**
- * Set the text value of a node or element
- *
- * Equivalent to `node.textContent = value` in the browser
- */
-function setTextContent(node, value) {
-  if (isCommentNode(node)) {
-    node.data = value;
-  } else if (isTextNode(node)) {
-    node.value = value;
-  } else {
-    var tn = newTextNode(value);
-    tn.parentNode = node;
-    node.childNodes = [tn];
-  }
-}
-
-/**
- * Match the text inside an element, textnode, or comment
- *
- * Note: nodeWalkAll with hasTextValue may return an textnode and its parent if
- * the textnode is the only child in that parent.
- */
-function hasTextValue(value) {
-  return function(node) {
-    return getTextContent(node) === value;
-  };
-}
-
-/**
- * OR an array of predicates
- */
-function OR(/* ...rules */) {
-  var rules = new Array(arguments.length);
-  for (var i = 0; i < arguments.length; i++) {
-    rules[i] = arguments[i];
-  }
-  return function(node) {
-    for (var i = 0; i < rules.length; i++) {
-      if (rules[i](node)) {
-        return true;
-      }
-    }
-    return false;
-  };
-}
-
-/**
- * AND an array of predicates
- */
-function AND(/* ...rules */) {
-  var rules = new Array(arguments.length);
-  for (var i = 0; i < arguments.length; i++) {
-    rules[i] = arguments[i];
-  }
-  return function(node) {
-    for (var i = 0; i < rules.length; i++) {
-      if (!rules[i](node)) {
-        return false;
-      }
-    }
-    return true;
-  };
-}
-
-/**
- * negate an individual predicate, or a group with AND or OR
- */
-function NOT(predicateFn) {
-  return function(node) {
-    return !predicateFn(node);
-  };
-}
-
-/**
- * Returns a predicate that matches any node with a parent matching `predicateFn`.
- */
-function parentMatches(predicateFn) {
-  return function(node) {
-    var parent = node.parentNode;
-    while(parent !== undefined) {
-      if (predicateFn(parent)) {
-        return true;
-      }
-      parent = parent.parentNode;
-    }
-    return false;
-  };
-}
-
-function hasAttr(attr) {
-  return function(node) {
-    return getAttributeIndex(node, attr) > -1;
-  };
-}
-
-function hasAttrValue(attr, value) {
-  return function(node) {
-    return getAttribute(node, attr) === value;
-  };
-}
-
-function isDocument(node) {
-  return node.nodeName === '#document';
-}
-
-function isDocumentFragment(node) {
-  return node.nodeName === '#document-fragment';
-}
-
-function isElement(node) {
-  return node.nodeName === node.tagName;
-}
-
-function isTextNode(node) {
-  return node.nodeName === '#text';
-}
-
-function isCommentNode(node) {
-  return node.nodeName === '#comment';
-}
-
-/**
- * Applies `mapfn` to `node` and the tree below `node`, returning a flattened
- * list of results.
- * @return {Array}
- */
-function treeMap(node, mapfn) {
-  var results = [];
-  nodeWalk(node, function(node){
-    results = results.concat(mapfn(node));
-    return false;
-  });
-  return results;
-}
-
-/**
- * Walk the tree down from `node`, applying the `predicate` function.
- * Return the first node that matches the given predicate.
- *
- * @returns {Node} `null` if no node matches, parse5 node object if a node
- * matches
- */
-function nodeWalk(node, predicate) {
-  if (predicate(node)) {
-    return node;
-  }
-  var match = null;
-  if (node.childNodes) {
-    for (var i = 0; i < node.childNodes.length; i++) {
-      match = nodeWalk(node.childNodes[i], predicate);
-      if (match) {
-        break;
-      }
-    }
-  }
-  return match;
-}
-
-/**
- * Walk the tree down from `node`, applying the `predicate` function.
- * All nodes matching the predicate function from `node` to leaves will be
- * returned.
- *
- * @returns {Array[Node]}
- */
-function nodeWalkAll(node, predicate, matches) {
-  if (!matches) {
-    matches = [];
-  }
-  if (predicate(node)) {
-    matches.push(node);
-  }
-  if (node.childNodes) {
-    for (var i = 0; i < node.childNodes.length; i++) {
-      nodeWalkAll(node.childNodes[i], predicate, matches);
-    }
-  }
-  return matches;
-}
-
-function _reverseNodeWalkAll(node, predicate, matches) {
-  if (!matches) {
-    matches = [];
-  }
-  if (node.childNodes) {
-    for (var i = node.childNodes.length - 1; i >= 0; i--) {
-      nodeWalkAll(node.childNodes[i], predicate, matches);
-    }
-  }
-  if (predicate(node)) {
-    matches.push(node);
-  }
-  return matches;
-}
-
-/**
- * Equivalent to `nodeWalkAll`, but only returns nodes that are either 
- * ancestors or earlier cousins/siblings in the document.
- *
- * Nodes are returned in reverse document order, starting from `node`.
- */
-function nodeWalkAllPrior(node, predicate, matches) {
-  if (!matches) {
-    matches = [];
-  }
-  if (predicate(node)) {
-    matches.push(node);
-  }
-  // Search our earlier siblings and their descendents.
-  var parent = node.parentNode;
-  if (parent) {
-    var idx = parent.childNodes.indexOf(node);
-    var siblings = parent.childNodes.slice(0, idx);
-    for (var i = siblings.length-1; i >= 0; i--) {
-      _reverseNodeWalkAll(siblings[i], predicate, matches);
-    }
-    nodeWalkAllPrior(parent, predicate, matches);
-  }
-  return matches;
-}
-
-/**
- * Equivalent to `nodeWalk`, but only matches elements
- *
- * @returns {Element}
- */
-function query(node, predicate) {
-  var elementPredicate = AND(isElement, predicate);
-  return nodeWalk(node, elementPredicate);
-}
-
-/**
- * Equivalent to `nodeWalkAll`, but only matches elements
- *
- * @return {Array[Element]}
- */
-function queryAll(node, predicate, matches) {
-  var elementPredicate = AND(isElement, predicate);
-  return nodeWalkAll(node, elementPredicate, matches);
-}
-
-function newTextNode(value) {
-  return {
-    nodeName: '#text',
-    value: value,
-    parentNode: null
-  };
-}
-
-function newCommentNode(comment) {
-  return {
-    nodeName: '#comment',
-    data: comment,
-    parentNode: null
-  };
-}
-
-function newElement(tagName, namespace) {
-  return {
-    nodeName: tagName,
-    tagName: tagName,
-    childNodes: [],
-    namespaceURI: namespace || 'http://www.w3.org/1999/xhtml',
-    attrs: [],
-    parentNode: null,
-  };
-}
-
-function replace(oldNode, newNode) {
-  insertBefore(oldNode.parentNode, oldNode, newNode);
-  remove(oldNode);
-}
-
-function remove(node) {
-  var parent = node.parentNode;
-  if (parent) {
-    var idx = parent.childNodes.indexOf(node);
-    parent.childNodes.splice(idx, 1);
-  }
-  node.parentNode = null;
-}
-
-function insertBefore(parent, oldNode, newNode) {
-  remove(newNode);
-  var idx = parent.childNodes.indexOf(oldNode);
-  parent.childNodes.splice(idx, 0, newNode);
-  newNode.parentNode = parent;
-}
-
-function append(parent, node) {
-  remove(node);
-  parent.childNodes.push(node);
-  node.parentNode = parent;
-}
-
-var parse5 = require('parse5');
-function parse(text, options) {
-  var parser = new parse5.Parser(parse5.TreeAdapters.default, options);
-  return parser.parse(text);
-}
-
-function parseFragment(text) {
-  var parser = new parse5.Parser();
-  return parser.parseFragment(text);
-}
-
-function serialize(ast) {
-  var serializer = new parse5.Serializer();
-  return serializer.serialize(ast);
-}
-
-module.exports = {
-  getAttribute: getAttribute,
-  hasAttribute: hasAttribute,
-  setAttribute: setAttribute,
-  removeAttribute: removeAttribute,
-  getTextContent: getTextContent,
-  setTextContent: setTextContent,
-  remove: remove,
-  replace: replace,
-  append: append,
-  insertBefore: insertBefore,
-  normalize: normalize,
-  isDocument: isDocument,
-  isDocumentFragment: isDocumentFragment,
-  isElement: isElement,
-  isTextNode: isTextNode,
-  isCommentNode: isCommentNode,
-  query: query,
-  queryAll: queryAll,
-  nodeWalk: nodeWalk,
-  nodeWalkAll: nodeWalkAll,
-  nodeWalkAllPrior: nodeWalkAllPrior,
-  treeMap: treeMap,
-  predicates: {
-    hasClass: hasClass,
-    hasAttr: hasAttr,
-    hasAttrValue: hasAttrValue,
-    hasMatchingTagName: hasMatchingTagName,
-    hasTagName: hasTagName,
-    hasTextValue: hasTextValue,
-    AND: AND,
-    OR: OR,
-    NOT: NOT,
-    parentMatches: parentMatches
-  },
-  constructors: {
-    text: newTextNode,
-    comment: newCommentNode,
-    element: newElement
-  },
-  parse: parse,
-  parseFragment: parseFragment,
-  serialize: serialize
-};
-
-},{"parse5":219}],245:[function(require,module,exports){
+},{"../common/doctype":225,"../common/foreign_content":226,"../common/html":227,"../common/unicode":228,"../common/utils":229,"../tokenization/tokenizer":238,"../tree_adapters/default":239,"./formatting_element_list":241,"./location_info_mixin":242,"./open_element_stack":243}],245:[function(require,module,exports){
 (function (process){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -46005,7 +46172,7 @@ exports = module.exports = require('./lib/cheerio');
 
 exports.version = require('./package').version;
 
-},{"./lib/cheerio":251,"./package":292}],247:[function(require,module,exports){
+},{"./lib/cheerio":251,"./package":313}],247:[function(require,module,exports){
 var _ = require('lodash'),
   utils = require('../utils'),
   isTag = utils.isTag,
@@ -47536,7 +47703,7 @@ exports.update = function (arr, parent) {
 // module.exports = $.extend(exports);
 
 }).call(this,require("buffer").Buffer)
-},{"buffer":174,"parse5":219}],253:[function(require,module,exports){
+},{"buffer":174,"parse5":292}],253:[function(require,module,exports){
 /*
  Module dependencies
  */
@@ -47699,7 +47866,7 @@ var renderComment = function (elem) {
 
 // module.exports = $.extend(exports);
 
-},{"./utils":255,"lodash":291,"parse5":219}],254:[function(require,module,exports){
+},{"./utils":255,"lodash":291,"parse5":292}],254:[function(require,module,exports){
 /**
  * Module dependencies
  */
@@ -56853,6 +57020,48 @@ arguments[4][272][0].apply(exports,arguments)
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 },{}],292:[function(require,module,exports){
+arguments[4][224][0].apply(exports,arguments)
+},{"./lib/jsdom/jsdom_parser":298,"./lib/serialization/serializer":300,"./lib/simple_api/simple_api_parser":301,"./lib/tree_adapters/default":307,"./lib/tree_adapters/htmlparser2":308,"./lib/tree_construction/parser":312,"dup":224}],293:[function(require,module,exports){
+arguments[4][225][0].apply(exports,arguments)
+},{"dup":225}],294:[function(require,module,exports){
+arguments[4][226][0].apply(exports,arguments)
+},{"../tokenization/tokenizer":306,"./html":295,"dup":226}],295:[function(require,module,exports){
+arguments[4][227][0].apply(exports,arguments)
+},{"dup":227}],296:[function(require,module,exports){
+arguments[4][228][0].apply(exports,arguments)
+},{"dup":228}],297:[function(require,module,exports){
+arguments[4][229][0].apply(exports,arguments)
+},{"dup":229}],298:[function(require,module,exports){
+arguments[4][230][0].apply(exports,arguments)
+},{"../tree_construction/parser":312,"./parsing_unit":299,"_process":180,"dup":230}],299:[function(require,module,exports){
+arguments[4][231][0].apply(exports,arguments)
+},{"dup":231}],300:[function(require,module,exports){
+arguments[4][232][0].apply(exports,arguments)
+},{"../common/doctype":293,"../common/html":295,"../common/utils":297,"../tree_adapters/default":307,"dup":232}],301:[function(require,module,exports){
+arguments[4][233][0].apply(exports,arguments)
+},{"../common/utils":297,"../tokenization/tokenizer":306,"./tokenizer_proxy":302,"dup":233}],302:[function(require,module,exports){
+arguments[4][234][0].apply(exports,arguments)
+},{"../common/foreign_content":294,"../common/html":295,"../common/unicode":296,"../tokenization/tokenizer":306,"dup":234}],303:[function(require,module,exports){
+arguments[4][235][0].apply(exports,arguments)
+},{"dup":235}],304:[function(require,module,exports){
+arguments[4][236][0].apply(exports,arguments)
+},{"dup":236}],305:[function(require,module,exports){
+arguments[4][237][0].apply(exports,arguments)
+},{"../common/unicode":296,"dup":237}],306:[function(require,module,exports){
+arguments[4][238][0].apply(exports,arguments)
+},{"../common/unicode":296,"./location_info_mixin":303,"./named_entity_trie":304,"./preprocessor":305,"dup":238}],307:[function(require,module,exports){
+arguments[4][239][0].apply(exports,arguments)
+},{"dup":239}],308:[function(require,module,exports){
+arguments[4][240][0].apply(exports,arguments)
+},{"../common/doctype":293,"dup":240}],309:[function(require,module,exports){
+arguments[4][241][0].apply(exports,arguments)
+},{"dup":241}],310:[function(require,module,exports){
+arguments[4][242][0].apply(exports,arguments)
+},{"../common/html":295,"../tokenization/tokenizer":306,"./open_element_stack":311,"dup":242}],311:[function(require,module,exports){
+arguments[4][243][0].apply(exports,arguments)
+},{"../common/html":295,"dup":243}],312:[function(require,module,exports){
+arguments[4][244][0].apply(exports,arguments)
+},{"../common/doctype":293,"../common/foreign_content":294,"../common/html":295,"../common/unicode":296,"../common/utils":297,"../tokenization/tokenizer":306,"../tree_adapters/default":307,"./formatting_element_list":309,"./location_info_mixin":310,"./open_element_stack":311,"dup":244}],313:[function(require,module,exports){
 module.exports={
   "author": {
     "name": "Matt Mueller",
@@ -56907,7 +57116,7 @@ module.exports={
   "homepage": "https://github.com/inikulin/whacko",
   "_id": "whacko@0.18.1",
   "_shasum": "ec28892f44049be80280251844047e0b53b40789",
-  "_from": "whacko@",
+  "_from": "whacko@>=0.18.1 <0.19.0",
   "_npmVersion": "1.4.28",
   "_npmUser": {
     "name": "inikulin",
