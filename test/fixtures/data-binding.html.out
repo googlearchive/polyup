@@ -9,7 +9,8 @@
     <div title="[[x]]"></div>
     <div title="[[computeTitle3()]]"></div>
     <div title="{{computeTitle4(x, y)}}"></div>
-    <div title="{{computeTitle5(y, z)}}"></div>
+    <div title="{{computeTitle5(x, y)}}"></div>
+    <div title="{{computeTitle6(y, z)}}"></div>
     <span>{{x}}</span>
   </template>
   <script>
@@ -25,9 +26,12 @@
         return 8 * 8;
       },
       computeTitle4: function (x, y) {
+        return x[y];
+      },
+      computeTitle5: function (x, y) {
         return x + ' is the new ' + y;
       },
-      computeTitle5: function (y, z) {
+      computeTitle6: function (y, z) {
         return y + ' is the new ' + z;
       },
       computeExpression1: function (a, b) {
