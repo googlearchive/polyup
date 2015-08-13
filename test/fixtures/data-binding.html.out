@@ -12,6 +12,8 @@
     <div title="{{computeTitle5(x, y)}}"></div>
     <div title="{{computeTitle6(y, z)}}"></div>
     <span>{{x}}</span>
+    <div title="{{!x}}"></div>
+    <div title="[[!x]]"></div>
   </template>
   <script>
     Polymer({
