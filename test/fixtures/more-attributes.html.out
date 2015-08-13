@@ -28,6 +28,11 @@
         i: { computed: 'computeI(a, b)' },
         j: { computed: 'computeJ(b, c, h)' }
       },
+      hostAttributes: {
+        'x': '1',
+        'y': '2'
+      },
+      listeners: { scroll: 'scrollFunc' },
       computeH: function () {
         return 1 + 1;
       },
@@ -36,12 +41,7 @@
       },
       computeJ: function (b, c, h) {
         return this.callOk(b, c + h);
-      },
-      hostAttributes: {
-        'x': '1',
-        'y': '2'
-      },
-      listeners: { scroll: 'scrollFunc' }
+      }
     });
   </script>
 </dom-module>
