@@ -86,21 +86,21 @@
       isGood: function (intVal) {
         return intVal > 1;
       },
-      computeParams: function (boolVal, intVal) {
-        return {
-          ok: boolVal,
-          good: this.isGood(intVal)
-        };
-      },
-      computeUrl: function (intVal) {
-        return '/api/v' + intVal + '/get';
-      },
       hostAttributes: { 'tabindex': '0' },
       computeStyle: function (strAttr) {
         return 'background-color: ' + strAttr + ';';
       },
       computeHref: function (strAttr) {
         return 'http://example.com/' + strAttr;
+      },
+      computeUrl: function (intVal) {
+        return '/api/v' + intVal + '/get';
+      },
+      computeParams: function (boolVal, intVal) {
+        return {
+          ok: boolVal,
+          good: this.isGood(intVal)
+        };
       }
     });
   </script>

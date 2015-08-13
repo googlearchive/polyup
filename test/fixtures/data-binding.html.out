@@ -11,8 +11,11 @@
     <div title="{{computeTitle4(x, y)}}"></div>
     <div title="{{computeTitle5(y, z)}}"></div>
     <span>{{x}}</span>
+    <!-- Don't need a computed function just for negation. -->
     <div title="{{!x}}"></div>
     <div title="[[!x]]"></div>
+    <!-- This duplicates the above -->
+    <div title="{{computeTitle2()}}"></div>
   </template>
   <script>
     Polymer({
