@@ -70,6 +70,11 @@
         },
         params: { computed: 'computeParams(boolVal, intVal)' },
         url: { computed: 'computeUrl(intVal)' },
+        wasChanged: {
+          value: function () {
+            return !true;
+          }
+        },
         x: { observer: 'somethingsUp' }
       },
       ready: function () {
