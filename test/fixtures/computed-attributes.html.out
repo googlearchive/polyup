@@ -1,5 +1,6 @@
 <link rel="import" href="../polymer/polymer.html">
 
+<!-- This element tests out migrating computed attributes. -->
 <dom-module id="computed-attributes-test-elem">
   <template>
     <div id="{{x}}"></div>
