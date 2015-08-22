@@ -36,7 +36,7 @@
         this.debounce('inputChanged', this.setOutput, this.delay);
       },
       setOutput: function () {
-        this.output = this.input;
+        this.set('output', this.input);
       }
     });
   </script>
