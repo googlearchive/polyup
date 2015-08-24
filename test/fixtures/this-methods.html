@@ -14,10 +14,10 @@
         this.deep[prop].of.another.place[toGo + '1'] = 2 * 2;
         // Don't upgrade expressions inside inner functions
         function innerStatement () {
-          this.imagePath = imagePath;
+          this.deep.prop = 4*4;
         }
         var innerExpression = function() {
-          this.imagePath = imagePath;
+          this.deep.prop = 8*8;
         };
       }
     });
