@@ -6,7 +6,7 @@
     <template is="dom-if" if="{{yes}}">
       This template if should be upgraded.
     </template>
-    So should this expression: <span>{{computeExpression1()}}</span>
+    So should this expression: <span>{{_computeExpression1()}}</span>
   </template>
   <template>
     This is an additional template. It should be a child of dom-module, but
@@ -19,7 +19,7 @@
   <script>
     Polymer({
       is: 'uses-multiple-templates',
-      computeExpression1: function () {
+      _computeExpression1: function () {
         return 1 + 1;
       }
     });

@@ -4,11 +4,11 @@
 <dom-module id="computed-attributes-test-elem">
   <template>
     <div id="{{x}}"></div>
-    <div id="{{computeY(x)}}"></div>
-    <div class$="{{computeClass(x)}}"></div>
-    <span>{{computeY(x)}}</span>
+    <div id="{{_computeY(x)}}"></div>
+    <div class$="{{_computeClass(x)}}"></div>
+    <span>{{_computeY(x)}}</span>
     <template is="dom-if" if="{{x}}">
-      Hi hello how <span>{{computeExpression2(x)}}</span> are you.
+      Hi hello how <span>{{_computeExpression2(x)}}</span> are you.
     </template>
   </template>
   <script>
@@ -20,23 +20,23 @@
           type: Number,
           value: 1
         },
-        y: { computed: 'computeY(x)' },
+        y: { computed: '_computeY(x)' },
         z: { computed: 'double(x)' },
-        zz: { computed: 'computeZz(x)' }
+        zz: { computed: '_computeZz(x)' }
       },
       double: function (val) {
         return val * val;
       },
-      computeY: function (x) {
+      _computeY: function (x) {
         return x + x;
       },
-      computeClass: function (x) {
+      _computeClass: function (x) {
         return 'big class' + x;
       },
-      computeExpression2: function (x) {
+      _computeExpression2: function (x) {
         return x * x;
       },
-      computeZz: function (x) {
+      _computeZz: function (x) {
         return this.double(x) + this.double(x);
       }
     });

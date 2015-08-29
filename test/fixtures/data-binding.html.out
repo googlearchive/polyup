@@ -3,43 +3,43 @@
 <dom-module id="data-binding-test-element">
   <template>
     <div id="{{f(x)}}"></div>
-    <span>{{computeExpression1(a, b)}}</span>
-    <div title="{{computeTitle()}}"></div>
-    <div title="{{computeTitle2()}}"></div>
+    <span>{{_computeExpression1(a, b)}}</span>
+    <div title="{{_computeTitle()}}"></div>
+    <div title="{{_computeTitle2()}}"></div>
     <div title="[[x]]"></div>
-    <div title="[[computeTitle3()]]"></div>
-    <div title="{{computeTitle4(x, y)}}"></div>
-    <div title="{{computeTitle5(x, y)}}"></div>
-    <div title="{{computeTitle6(y, z)}}"></div>
+    <div title="[[_computeTitle3()]]"></div>
+    <div title="{{_computeTitle4(x, y)}}"></div>
+    <div title="{{_computeTitle5(x, y)}}"></div>
+    <div title="{{_computeTitle6(y, z)}}"></div>
     <span>{{x}}</span>
     <!-- Don't need a computed function just for negation. -->
     <div title="{{!x}}"></div>
     <div title="[[!x]]"></div>
     <!-- This duplicates the above -->
-    <div title="{{computeTitle2()}}"></div>
+    <div title="{{_computeTitle2()}}"></div>
   </template>
   <script>
     Polymer({
       is: 'data-binding-test-element',
-      computeTitle: function () {
+      _computeTitle: function () {
         return 2 * 2;
       },
-      computeTitle2: function () {
+      _computeTitle2: function () {
         return 4 * 4;
       },
-      computeTitle3: function () {
+      _computeTitle3: function () {
         return 8 * 8;
       },
-      computeTitle4: function (x, y) {
+      _computeTitle4: function (x, y) {
         return x[y];
       },
-      computeTitle5: function (x, y) {
+      _computeTitle5: function (x, y) {
         return x + ' is the new ' + y;
       },
-      computeTitle6: function (y, z) {
+      _computeTitle6: function (y, z) {
         return y + ' is the new ' + z;
       },
-      computeExpression1: function (a, b) {
+      _computeExpression1: function (a, b) {
         return this.tokenList(this.myFilter(a + b, 2));
       },
       tokenList: function (obj) {
