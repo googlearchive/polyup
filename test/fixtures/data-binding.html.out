@@ -44,7 +44,7 @@
       },
       tokenList: function (obj) {
         var pieces = [];
-        for (key in obj) {
+        for (var key in obj) {
           if (obj[key]) {
             pieces.push(key);
           }
