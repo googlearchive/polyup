@@ -39,6 +39,10 @@ overwrite your code on disk with the upgraded version. Make sure that you've
 got your code checked into source control first, as this will in effect delete
 the v0.5 version of your code!
 
+## Manual Changes
+
+polyup does a lot of stuff! But it doesn't do everything. See the [After Use Guide](AfterUseGuide.md) for common changes that you'll need to make by hand.
+
 ## Reporting Bugs
 
 `polyup` is still in early and active development. Since so many people are looking at migrating to 1.0 right now we thought that it was better to get what
@@ -108,7 +112,6 @@ Please file bugs as you see them! See [CONTRIBUTING.md](CONTRIBUTING.md) for mor
   - [x] Upgrades official mixins from 0.5 into behaviors of 1.0.
   - [ ] Renames methods, e.g.
         `this.$.ajax.go()` -> `this.$.ajax.generateRequest()`
-- [ ] Removes the unresolved attribute
 - [x] Converts calls of Polymer.mixin and Polymer.mixin2 into behavior
       declarations.
 - [ ] Detects and upgrades user-defined mixins.
