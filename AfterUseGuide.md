@@ -53,18 +53,6 @@ polyup uses a standards compliant HTML parser. The downside of this is that it c
 
 ## Javascript
 
-### DOM interaction that may affect Polymer elements should use Polymer.dom()
-
-`elem.domMethod` becomes `Polymer.dom(elem).domMethod`.
-
-Methods to look for:
-
-appendChild, insertBefore removeChild, flush, childNodes, parentNode,
-firstChild, lastChild, firstElementChild, lastElementChild,
-previousSibling, nextSibling, textContent, innerHTML, querySelector,
-querySelectorAll, getDistributedNodes, getDestinationInsertionPoints,
-setAttribute, removeAttribute, classList
-
 ### Official element API changes
 
 Any time that you're interacting with custom elements through javascript, e.g. with `this.$.myCoreAjaxId.go()` or `document.createElement('core-tooltip')` you'll need to review this code for changes to the APIs of the involved elements.

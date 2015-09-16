@@ -148,8 +148,8 @@ Please file bugs as you see them! See [CONTRIBUTING.md](CONTRIBUTING.md) for mor
 - [ ] Replace `addEventListener('polymer-ready', ...)` with
       `addEventListener('WebComponentsReady', ...)`
 - [ ] Warns on usage of the removed trackstart and trackend events.
-- [ ] Updates `elem.domMethod` to `Polymer.dom(elem).domMethod`
-  - [ ] appendChild, insertBefore removeChild, flush, childNodes, parentNode,
+- [x] Updates `elem.domMethod` to `Polymer.dom(elem).domMethod`
+  - [x] appendChild, insertBefore removeChild, childNodes, parentNode,
         firstChild, lastChild, firstElementChild, lastElementChild,
         previousSibling, nextSibling, textContent, innerHTML, querySelector,
         querySelectorAll, getDistributedNodes, getDestinationInsertionPoints,
