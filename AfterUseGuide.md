@@ -82,7 +82,7 @@ window.addEventListener('polymer-ready', function() { ... });
 which should become
 
 ```javascript
-window.addEventListener('web-components-ready', function() { ... });
+window.addEventListener('WebComponentsReady', function() { ... });
 ```
 
 ### Custom element inheritance should become behaviors

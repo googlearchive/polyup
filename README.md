@@ -146,7 +146,7 @@ Please file bugs as you see them! See [CONTRIBUTING.md](CONTRIBUTING.md) for mor
       they're lost currently.
 - [ ] Rename Polymer.import -> Polymer.Base.importHref
 - [ ] Replace `addEventListener('polymer-ready', ...)` with
-      `addEventListener('web-components-ready', ...)`
+      `addEventListener('WebComponentsReady', ...)`
 - [ ] Warns on usage of the removed trackstart and trackend events.
 - [ ] Updates `elem.domMethod` to `Polymer.dom(elem).domMethod`
   - [ ] appendChild, insertBefore removeChild, flush, childNodes, parentNode,
