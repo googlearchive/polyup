@@ -64,7 +64,7 @@
     var editorValue = input.value;
     // need to delay this because
     requestAnimationFrame(function() {
-      var outputVal = Polyup.upgradeHtml(input.editor.getValue());
+      var outputVal = Polyup.upgradeHtml(input.value);
       output.value = outputVal;
       output.editor.clearSelection()
       output.editor.getSession().setScrollTop(scrollPos);
