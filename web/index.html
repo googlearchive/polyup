@@ -2,7 +2,7 @@
 <html>
 <head>
   <title>Polyup!</title>
-  <script src='/components/ace-builds/src-noconflict/ace.js'></script>
+  <link rel="import" href="/components/juicy-ace-editor/juicy-ace-editor.html">
   <style>
     #left {
       display: inline-block;
@@ -38,52 +38,46 @@
 <div id='wrapper'>
   <div id='left'>
     <label>Polymer 0.5 input:</label>
-    <div id='editor'>
-      <!-- This will be an ace editor -->
-    </div>
+    <juicy-ace-editor id="editor"
+      theme="ace/theme/monokai"
+      mode="ace/mode/html"
+      setTabSize="2"
+      wrapmode
+      ></juicy-ace-editor>
   </div>
   <div id='right'>
     <label>Polymer 1.0 output:</label>
-    <div id='output'>
-      <!-- This will be a read-only ace editor -->
-    </div>
+    <juicy-ace-editor id="output"
+      theme="ace/theme/monokai"
+      mode="ace/mode/html"
+      readonly="true"
+      wrapmode
+      ></juicy-ace-editor>
   </div>
 </div>
 <script src='/dist/browser_package.js'></script>
 <script>
-  var editor = ace.edit("editor");
-  editor.$blockScrolling = Infinity
-  editor.setTheme("ace/theme/monokai");
-  editor.getSession().setMode("ace/mode/html");
-  editor.getSession().setTabSize(2);
-  editor.getSession().setUseWrapMode(true);
-  var output = ace.edit('output');
-  output.$blockScrolling = Infinity
-  output.setReadOnly(true);
-  output.setTheme("ace/theme/monokai");
-  output.getSession().setMode('ace/mode/html');
-  output.getSession().setUseWrapMode(true);
-  output.setHighlightActiveLine(false);
-  output.setHighlightGutterLine(false);
+  var input = document.getElementById("editor");
+  var output = document.getElementById('output');
   function onChange() {
-    var scrollPos = output.getSession().getScrollTop();
-    var editorValue = editor.getValue();
+    var scrollPos = output.editor.getSession().getScrollTop();
+    var editorValue = input.value;
     // need to delay this because
     requestAnimationFrame(function() {
-      var outputVal = Polyup.upgradeHtml(editor.getValue());
-      output.setValue(outputVal);
-      output.clearSelection()
-      output.getSession().setScrollTop(scrollPos);
+      var outputVal = Polyup.upgradeHtml(input.value);
+      output.value = outputVal;
+      output.editor.clearSelection()
+      output.editor.getSession().setScrollTop(scrollPos);
     })
   }
-  editor.getSession().on('change', onChange);
+  input.addEventListener('change', onChange);
   fetch('/0.5/flickr-search-app.html').then(function(response) {
-    return response.text()
+    return response.text();
   }).then(function(responseText) {
-    editor.setValue(responseText);
-    editor.clearSelection();
-    editor.scrollToLine(0);
-    output.scrollToLine(0);
+    input.value = responseText;
+    input.editor.clearSelection();
+    input.editor.scrollToLine(0);
+    output.editor.scrollToLine(0);
   });
 </script>
 </body>

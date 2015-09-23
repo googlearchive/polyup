@@ -13,6 +13,6 @@
     "tests"
   ],
   "dependencies": {
-    "ace-builds": "~1.1.9"
+    "juicy-ace-editor": "~1.1.0"
   }
 }
