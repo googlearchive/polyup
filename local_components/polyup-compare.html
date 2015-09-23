@@ -1,8 +1,8 @@
 <link rel='import' href='../bower_components/polymer/polymer.html'>
 <link rel='import' href='../bower_components/iron-ajax/iron-ajax.html'>
+<link rel='import' href='../bower_components/juicy-ace-editor/juicy-ace-editor.html'>
 
 <script src='../dist/browser_package.js'></script>
-<script src='../bower_components/ace-builds/src-noconflict/ace.js'></script>
 
 <dom-module id='polyup-compare'>
   <style>
@@ -62,16 +62,23 @@
         <iron-ajax auto url='{{selectedSample}}' handle-as='text'
                    last-response='{{editorInput}}'>
         </iron-ajax>
-        <div id='editor'>
-          <!-- This will be an ace editor -->
-        </div>
+        <juicy-ace-editor id="editor"
+          theme="ace/theme/monokai"
+          mode="ace/mode/html"
+          setTabSize="2"
+          wrapmode
+          value="[[editorInput]]"
+          ></juicy-ace-editor>
       </div>
       <div id='right'>
         <label>Polymer 1.0 output:</label>
         <span class='errorMessage'>{{errorMessage}}</span>
-        <div id='output'>
-          <!-- This will be a read-only ace editor -->
-        </div>
+        <juicy-ace-editor id="output"
+          theme="ace/theme/monokai"
+          mode="ace/mode/html"
+          readonly="true"
+          wrapmode
+          ></juicy-ace-editor>
       </div>
     </div>
   </template>
@@ -85,52 +92,41 @@
       }
     },
     ready: function() {
-      var editor = ace.edit(this.$.editor);
-      this.editor = editor;
-      editor.$blockScrolling = Infinity
-      editor.setTheme("ace/theme/monokai");
-      editor.getSession().setMode("ace/mode/html");
-      editor.getSession().setTabSize(2);
-      editor.getSession().setUseWrapMode(true);
+      var input = this.$.editor;
+      this.input = input;
+      input.editor.$blockScrolling = Infinity;
 
-      var output = ace.edit(this.$.output);
+      var output = this.$.output;
       this.output = output;
-      output.$blockScrolling = Infinity
-      output.setReadOnly(true);
-      output.setTheme("ace/theme/monokai");
-      output.getSession().setMode('ace/mode/html');
-      output.getSession().setUseWrapMode(true);
-      output.setHighlightActiveLine(false);
-      output.setHighlightGutterLine(false);
+      output.editor.$blockScrolling = Infinity;
 
       var self = this;
       function onChange() {
-        var scrollPos = output.getSession().getScrollTop();
-        var editorValue = editor.getValue();
+        var scrollPos = output.editor.getSession().getScrollTop();
         // Need to delay this because ace assumes that the onchange handler
         // will be very fast, otherwise it drops some keyboard events, and
         // in general behaves *very* strange.
         requestAnimationFrame(function() {
           try {
-            var outputVal = Polyup.upgradeHtml(editor.getValue());
+            var outputVal = Polyup.upgradeHtml(input.value);
           } catch(e) {
             self.errorMessage = e.message || e.toString();
             return;
           }
           self.errorMessage = '';
-          output.setValue(outputVal);
-          output.clearSelection()
-          output.getSession().setScrollTop(scrollPos);
+          output.value = outputVal;
+          output.editor.clearSelection()
+          output.editor.getSession().setScrollTop(scrollPos);
         })
       }
-      editor.getSession().on('change', onChange);
+      input.addEventListener('change', onChange);
       this.selectedSample = this.$.select.value;
     },
     _editorInputChanged: function() {
-      this.editor.setValue(this.editorInput);
-      this.editor.clearSelection();
-      this.editor.scrollToLine(0);
-      this.output.scrollToLine(0);
+      // this.input.value = (this.editorInput);
+      this.input.editor.clearSelection();
+      this.input.editor.scrollToLine(0);
+      this.output.editor.scrollToLine(0);
     }
   })
 
