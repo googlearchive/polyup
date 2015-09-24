@@ -1,0 +1,35 @@
+<link rel="import" href="components/paper-drawer-panel/paper-drawer-panel.html">
+<link rel="import" href="components/paper-header-panel/paper-header-panel.html">
+<link rel="import" href="components/paper-toolbar/paper-toolbar.html">
+<link rel="import" href="components/paper-menu/paper-menu.html">
+<link rel="import" href="components/paper-item/paper-item.html">
+<link rel="import" href="components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="components/iron-icons/iron-icons.html">
+
+<paper-drawer-panel id="drawerPanel">
+  <paper-header-panel drawer="">
+    <paper-toolbar id="navheader">
+      <span>Menu</span>
+    </paper-toolbar>
+    <paper-menu>
+      <paper-item undefined="One"></paper-item>
+      <paper-item undefined="Two"></paper-item>
+    </paper-menu>
+  </paper-header-panel>
+
+  <paper-header-panel main="">
+    <paper-toolbar id="mainheader">
+      <paper-icon-button id="navicon" icon="menu"></paper-icon-button>
+      <span flex="">Title</span>
+    </paper-toolbar>
+    <div class="content">
+      If drawer is hidden, press button to display drawer.
+    </div>
+  </paper-header-panel>
+</paper-drawer-panel>
+
+<script>
+  document.querySelector('#navicon').addEventListener('click', function() {
+    document.querySelector('#drawerPanel').togglePanel();
+  });
+</script>
