@@ -1,0 +1,15 @@
+<link rel="import" href="../polymer/polymer.html">
+
+<dom-module id="uses-es6">
+  <script>
+    Polymer({
+      is: 'uses-es6',
+      created: function () {
+        var world = 'the world';
+        this.str = `Hello there
+        ${ world }
+        `;
+      }
+    });
+  </script>
+</dom-module>
