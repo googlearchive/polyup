@@ -10,6 +10,16 @@
       doThing: function () {
         var imagePath = this.resolveUrl('image.png');
         console.log(imagePath);
+        this.imagePath = imagePath;
+        this.set('deep.prop', 2 * 2);
+        this.set('deep' + ('.' + prop) + '.of' + '.another' + '.place' + ('.' + (toGo + '1')), 2 * 2);
+        // Don't upgrade expressions inside inner functions
+        function innerStatement() {
+          this.deep.prop = 4 * 4;
+        }
+        var innerExpression = function () {
+          this.deep.prop = 8 * 8;
+        };
       }
     });
   </script>
