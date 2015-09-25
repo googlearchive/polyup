@@ -11,8 +11,8 @@
     </style>
   <link rel="import" type="css" href="simple-element.css">
   <template>
-    <div for="{{strAttr}}" style$="{{computeStyle(strAttr)}}">
-      <a href$="{{computeHref(strAttr)}}">Hello there</a>
+    <div for="{{strAttr}}" style$="{{_computeStyle(strAttr)}}">
+      <a href$="{{_computeHref(strAttr)}}">Hello there</a>
     </div>
     <input>
     <label on-click="labelClicked" for$="{{strAttr}}">Select one:</label>
@@ -68,8 +68,8 @@
           },
           notify: true
         },
-        params: { computed: 'computeParams(boolVal, intVal)' },
-        url: { computed: 'computeUrl(intVal)' },
+        params: { computed: '_computeParams(boolVal, intVal)' },
+        url: { computed: '_computeUrl(intVal)' },
         wasChanged: {
           value: function () {
             return !true;
@@ -94,16 +94,16 @@
         return intVal > 1;
       },
       hostAttributes: { 'tabindex': '0' },
-      computeStyle: function (strAttr) {
+      _computeStyle: function (strAttr) {
         return 'background-color: ' + strAttr + ';';
       },
-      computeHref: function (strAttr) {
+      _computeHref: function (strAttr) {
         return 'http://example.com/' + strAttr;
       },
-      computeUrl: function (intVal) {
+      _computeUrl: function (intVal) {
         return '/api/v' + intVal + '/get';
       },
-      computeParams: function (boolVal, intVal) {
+      _computeParams: function (boolVal, intVal) {
         return {
           ok: boolVal,
           good: this.isGood(intVal)

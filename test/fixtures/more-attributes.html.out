@@ -24,22 +24,22 @@
         },
         f: { observer: 'fAndGChanged' },
         g: { observer: 'fAndGChanged' },
-        h: { computed: 'computeH()' },
-        i: { computed: 'computeI(a, b)' },
-        j: { computed: 'computeJ(b, c, h)' }
+        h: { computed: '_computeH()' },
+        i: { computed: '_computeI(a, b)' },
+        j: { computed: '_computeJ(b, c, h)' }
       },
       hostAttributes: {
         'x': '1',
         'y': '2'
       },
       listeners: { scroll: 'scrollFunc' },
-      computeH: function () {
+      _computeH: function () {
         return 1 + 1;
       },
-      computeI: function (a, b) {
+      _computeI: function (a, b) {
         return a + b;
       },
-      computeJ: function (b, c, h) {
+      _computeJ: function (b, c, h) {
         return this.callOk(b, c + h);
       }
     });

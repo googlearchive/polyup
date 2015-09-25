@@ -77,11 +77,11 @@
     <input autofocus="" value="{{search::input}}">
     <my-debouncer input="{{search}}" output="{{debouncedSearch}}">
     </my-debouncer>
-    <iron-ajax auto="" url="https://www.flickr.com/services/rest/" handle-as="json" params="{{computeParams(apiKey, debouncedSearch)}}" last-response="{{response}}" last-error="{{error}}" loading="{{loading}}">
+    <iron-ajax auto="" url="https://www.flickr.com/services/rest/" handle-as="json" params="{{_computeParams(apiKey, debouncedSearch)}}" last-response="{{response}}" last-error="{{error}}" loading="{{loading}}">
     </iron-ajax>
     <paper-spinner active="{{loading}}"></paper-spinner>
     <template is="dom-repeat" items="{{response.photos.photo}}" as="photo">
-      <img src="{{computeSrc(photo)}}" class$="{{computeClass(photo)}}">
+      <img src="{{_computeSrc(photo)}}" class$="{{_computeClass(photo)}}">
     </template>
     <template is="dom-if" if="{{error}}">
       <span>{{error.statusCode}}</span> Error:
@@ -112,7 +112,7 @@
         }
         return classes;
       },
-      computeParams: function (apiKey, debouncedSearch) {
+      _computeParams: function (apiKey, debouncedSearch) {
         return {
           method: 'flickr.photos.search',
           api_key: apiKey,
@@ -122,10 +122,10 @@
           nojsoncallback: 1
         };
       },
-      computeClass: function (photo) {
+      _computeClass: function (photo) {
         return this.tokenList(this.getClasses(photo));
       },
-      computeSrc: function (photo) {
+      _computeSrc: function (photo) {
         return 'https://farm' + photo.farm + '.staticflickr.com/' + photo.server + '/' + photo.id + '_' + photo.secret + '.jpg';
       },
       tokenList: function (obj) {
