@@ -29,7 +29,7 @@
 </paper-drawer-panel>
 
 <script>
-  document.querySelector('#navicon').addEventListener('click', function() {
-    document.querySelector('#drawerPanel').togglePanel();
+  Polymer.dom(document).querySelector('#navicon').addEventListener('click', function () {
+    Polymer.dom(document).querySelector('#drawerPanel').togglePanel();
   });
 </script>

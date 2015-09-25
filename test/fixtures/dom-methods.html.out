@@ -1,0 +1,13 @@
+<script>
+  Polymer.dom(document).querySelector('input');
+</script>
+
+<script>
+  // TODO(rictic): make this more robust, test more of the elements.
+  Polymer({
+    is: 'uses-dom-methods',
+    ready: function () {
+      console.log(Polymer.dom(this.$.child).querySelector('span'));
+    }
+  });
+</script>
