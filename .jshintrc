@@ -3,5 +3,6 @@
   "unused": true,
   "eqnull": true,
   "esnext": true,
+  "loopfunc": true,
   "predef": [ "Map", "Set" ]
 }
